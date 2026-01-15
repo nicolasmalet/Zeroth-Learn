@@ -48,7 +48,7 @@ Model (training loop orchestration)
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/nicolasmalet/Zeroth-Zearn.git
+    git clone https://github.com/nicolasmalet/Zeroth-Learn.git
     cd Zeroth-Learn
     ```
 
