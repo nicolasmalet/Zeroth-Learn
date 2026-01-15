@@ -73,11 +73,13 @@ def plot_0d(models: list, title: str, smooth_span: int = 50):
         label = f"Model {i + 1}" if len(models) > 1 else ""
         plot_curve(ax, model, label, smooth_span)
 
-    ax.set_title(title)
+    fig.suptitle(title, fontweight='bold', fontsize=12)
     ax.set_xlabel("Training steps")
     ax.set_ylabel("Training loss")
     format_ax(ax)
-    ax.legend(loc="upper right")
+
+    if len(models) > 1:
+        ax.legend(loc="upper right")
 
     plt.tight_layout()
 

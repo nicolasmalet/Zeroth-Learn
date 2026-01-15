@@ -33,6 +33,12 @@ VARIATIONS = VariationCatalog()
 #  WARNING: some VariationConfig might overwrite others depending on the order of variations
 @dataclass(frozen=True)
 class ExperimentCatalog:
+    first_experiment: ExperimentConfig = ExperimentConfig(name="first_experiment",
+                                                          title="Congrats for your first experiment ! ",
+                                                          base_model=MODELS.multiplex_linear_adam,
+                                                          variations=[],
+                                                          create_data=create_data_mnist)
+
     lr_vs_size_adam: ExperimentConfig = ExperimentConfig(name="lr_vs_size_adam",
                                                                title="Optimal Learning Rate across Model Depths with Adam",
                                                                base_model=MODELS.backprop_xs_adam,
