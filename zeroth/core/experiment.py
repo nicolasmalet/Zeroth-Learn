@@ -16,6 +16,7 @@ class ExperimentConfig:
     base_model: ModelConfig
     variations: list[VariationConfig]
     create_data: Callable
+    plot_dimension : int
 
     def instantiate(self):
         return Experiment(self)
@@ -40,6 +41,7 @@ class Experiment:
         self.base_model = config.base_model
         self.models = generate_models(config.base_model, config.variations)
         self.data = config.create_data()
+        self.plot_dimension = config.plot_dimension
 
         self.save_dir = os.path.join("results", self.name)
 
@@ -72,7 +74,7 @@ class Experiment:
                 os.makedirs(self.save_dir, exist_ok=True)
                 plot_path = os.path.join(self.save_dir, "training_losses.png")
 
-            plot_losses(models=self.models, title=self.title, save_path=plot_path)
+            plot_losses(dimension=self.plot_dimension, models=self.models, title=self.title, save_path=plot_path)
 
     def test(self):
         for model in self.models:

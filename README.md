@@ -98,7 +98,7 @@ for W, B, f in zip(Ws, Bs, fs):
 #### Gradient Estimation
 The SPSA gradient estimator:
 
-$$\nabla L(\theta) \approx \frac{1}{T \cdot \delta^2} \sum_{i=1}^{T} \left( L(\theta + \delta \Delta_i) - L(\theta) \right) \Delta_i$$
+$$\nabla L(\theta) \approx \frac{1}{T \cdot \delta} \sum_{i=1}^{T} \left( L(\theta + \delta \Delta_i) - L(\theta) \right) \Delta_i$$
 
 where $\Delta_i \sim \text{Rademacher}(\pm 1)$ are random perturbation directions.
 
@@ -126,7 +126,7 @@ grad = np.einsum('ij,ik->k', L_diff, self.Ps) / (batch_size * T * delta)
 - Grid search over learning rates × architectures
 - Identified stability thresholds (divergence boundaries)
 
-![Learning Rate Analysis](assets/plots/lr_vs_size_adam.png)
+![Learning Rate Analysis](assets/plots/lr_adam.png)
 
 **Finding**: Adam requires lr ~ 0.001 for networks with 10K to 100K parameters to avoid gradient explosion in SPSA.
 
@@ -143,14 +143,14 @@ grad = np.einsum('ij,ik->k', L_diff, self.Ps) / (batch_size * T * delta)
 ---
 
 **Phase 3: Sample Efficiency**
-- Varied perturbation count T ∈ {10, 30, 50, 100}
+- Varied perturbation count T ∈ {10, 30, 100}
 - Measured gradient variance vs. computational cost
 
 ![Perturbation Analysis](assets/plots/nb_perturbations.png)
 
-**Finding**: As gradient approximation variance reduction follows $\sigma \propto 1/\sqrt{T}$, we get marginal returns beyond T=50.
+**Finding**: As gradient approximation variance reduction follows $\sigma \propto 1/\sqrt{T}$, we get marginal returns beyond T=30.
 
-**Practical implication**: For quantum circuits, 50 evaluations/step is feasible on current hardware.
+**Practical implication**: For quantum circuits, 30 evaluations/step is feasible on current hardware.
 
 ---
 

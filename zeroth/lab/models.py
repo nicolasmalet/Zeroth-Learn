@@ -71,7 +71,7 @@ class ModelCatalog:
         optimizer_config=OPTIMIZERS.AdamPerturbation,
         loss=losses.CrossEntropy(),
         metric=metric_mnist,
-        batch_size=50,
+        batch_size=50 ,
         nb_epochs=1,
     )
 

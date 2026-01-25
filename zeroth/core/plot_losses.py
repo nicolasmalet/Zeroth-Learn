@@ -47,17 +47,11 @@ def format_ax(ax: Axes):
 
 
 def smooth_curve(loss: np.ndarray, smooth_span: int) -> np.ndarray:
-    if len(loss) == 0:
-        return np.array([])
     return np.exp(pd.Series(np.log(loss)).ewm(span=smooth_span, adjust=True).mean())
 
 
 def plot_curve(ax: Axes, model: Model, label: str, smooth_span: int):
-    loss = getattr(model, "train_loss", None)
-    if loss is None or len(loss) == 0:
-        return
-
-    loss = np.asarray(loss)
+    loss = model.train_loss
     ax.plot(loss, alpha=0.25, linewidth=1.0)
     smooth = smooth_curve(loss, smooth_span)
     ax.plot(smooth, label=label, linewidth=2.5)
@@ -67,47 +61,63 @@ def plot_0d(models: list, title: str, smooth_span: int = 50):
     """
     Plots a single graph overlaying multiple models that share the same hyperparameters.
     """
-    fig, ax = plt.subplots(figsize=(8, 6))
+    fig, ax = plt.subplots(figsize=(5.5, 3.5))
 
-    for i, model in enumerate(models):
-        label = f"Model {i + 1}" if len(models) > 1 else ""
+    for model in models:
+        others = [f"{k}={v}" for k, v in model.id.items()]
+        label = ", ".join(others)
         plot_curve(ax, model, label, smooth_span)
 
+        format_ax(ax)
+
+    plt.subplots_adjust(left=0.1, right=0.95, top=0.9, bottom=0.2)
     fig.suptitle(title, fontweight='bold', fontsize=12)
     ax.set_xlabel("Training steps")
     ax.set_ylabel("Training loss")
     format_ax(ax)
 
-    if len(models) > 1:
-        ax.legend(loc="upper right")
+    handles, labels = ax.get_legend_handles_labels()
 
-    plt.tight_layout()
+    if handles:
+        fig.legend(handles, labels, loc='lower center', ncol=len(handles),
+                   bbox_to_anchor=(0.5, 0), frameon=False, fontsize=9)
 
 
 def plot_1d(models: list, title: str, key: str, smooth_span: int = 50):
     """
     Plots a row of subplots, varying one hyperparameter (key) across columns.
     """
-    n_models = len(models)
+
+    cols = list(dict.fromkeys([m.id[key] for m in models]))
+    n_models = len(cols)
     fig, axs = plt.subplots(1, n_models, figsize=(4.5 * n_models, 3.5), sharey=True)
 
-    if n_models == 1:
-        axs = [axs]
-
-    for i, model in enumerate(models):
+    for i, val in enumerate(cols):
         ax = axs[i]
-        val = model.id.get(key, "N/A")
-        plot_curve(ax, model, "Loss", smooth_span)
-        ax.set_title(f"{key} = {val}")
+        cell_models = [m for m in models if m.id[key] == val]
+
+        for model in cell_models:
+            others = [f"{k}={v}" for k, v in model.id.items()
+                      if k != key]
+            label = ", ".join(others)
+            plot_curve(ax, model, label, smooth_span)
+
         format_ax(ax)
-        ax.legend(loc="upper right")
 
-        if i == 0:
-            ax.set_ylabel("Training loss")
-        ax.set_xlabel("Training steps")
+        ax.set_title(f"{key} = {val}")
 
+
+    fig.text(0.5, 0.1, "Training steps", ha='center', fontsize=10)
+    fig.text(0.01, 0.5, "Training loss", va='center', rotation='vertical', fontsize=10)
+
+    plt.subplots_adjust(left=0.05, right=0.96, top=0.85, bottom=0.2, wspace=0.10, hspace=0.18)
     fig.suptitle(title, fontweight='bold', fontsize=12)
-    plt.tight_layout()
+
+    handles, labels = axs[0].get_legend_handles_labels()
+
+    if handles:
+        fig.legend(handles, labels, loc='lower center', ncol=len(handles),
+                   bbox_to_anchor=(0.5, 0), frameon=False, fontsize=9)
 
 
 def plot_2d_grid(models: list, title: str, row_key: str, col_key: str, smooth_span: int = 50):
@@ -131,16 +141,15 @@ def plot_2d_grid(models: list, title: str, row_key: str, col_key: str, smooth_sp
     for i, r_val in enumerate(rows):
         for j, c_val in enumerate(cols):
             ax = axs[i, j]
-            cell_models = [m for m in models
-                           if m.id[row_key] == r_val and m.id[col_key] == c_val]
+            cell_models = [m for m in models if m.id[row_key] == r_val and m.id[col_key] == c_val]
 
             for model in cell_models:
-                others = [f"{k}={v}" for k, v in model.id.items()
-                          if k not in [row_key, col_key]]
-                label = ", ".join(others) if others else "Model"
+                others = [f"{k}={v}" for k, v in model.id.items() if k not in [row_key, col_key]]
+                label = ", ".join(others)
                 plot_curve(ax, model, label, smooth_span)
 
             format_ax(ax)
+
 
             if i == 0:
                 ax.set_title(f"{col_key} = {c_val}")
@@ -149,6 +158,7 @@ def plot_2d_grid(models: list, title: str, row_key: str, col_key: str, smooth_sp
                 ax.text(1.02, 0.5, f"{row_key} = {r_val}",
                         transform=ax.transAxes, rotation=-90,
                         va="center", ha="left")
+
     plt.subplots_adjust(left=0.06, right=0.96, top=0.90, bottom=0.12, wspace=0.10, hspace=0.18)
     fig.suptitle(title, fontsize=14, fontweight='bold', y=0.98)
 
@@ -162,12 +172,13 @@ def plot_2d_grid(models: list, title: str, row_key: str, col_key: str, smooth_sp
 
 
 
-def plot_losses(models: list, title: str, save_path: str = None, smooth_span: int = 100):
+def plot_losses(dimension: int, models: list, title: str, save_path: str = None, smooth_span: int = 100):
     """
     Main entry point for plotting. Automatically detects if the plot should be 0D, 1D, or 2D
     based on the number of variation parameters.
 
     Args:
+        dimension (int): dimension of the plot
         models (list): List of model objects.
         title (str): The title of the plot.
         save_path (str, optional): File path to save the figure (e.g., 'plot.png').
@@ -176,11 +187,10 @@ def plot_losses(models: list, title: str, save_path: str = None, smooth_span: in
     set_style()
 
     keys = list(models[0].id.keys())
-    n_vars = len(keys)
 
-    if n_vars == 0:
+    if dimension == 0:
         plot_0d(models, title, smooth_span)
-    elif n_vars == 1:
+    elif dimension == 1:
         plot_1d(models, title, keys[0], smooth_span)
     else:
         plot_2d_grid(models, title, keys[0], keys[1], smooth_span)
