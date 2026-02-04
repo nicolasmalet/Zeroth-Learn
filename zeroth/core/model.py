@@ -1,11 +1,17 @@
 from dataclasses import dataclass
+from matplotlib.axes import Axes
 from typing import Callable
 from abc import ABC
+
+import pandas as pd
 import numpy as np
 
-from zeroth.core.spsa import NeuralNetworkPerturbation, OptimizerPerturbationConfig, PerturbationConfig
-from zeroth.core.backpropagation import NeuralNetworkBackpropagation, OptimizerBackpropConfig
-from zeroth.core.common import NeuralNetworkConfig, Loss
+from zeroth.core.zeroth_order import ZerothOrderNeuralNetwork, ZerothOrderOptimizerConfig, GradientEstimatorConfig, \
+    GradientEstimator
+from zeroth.core.first_order import FirstOrderNeuralNetwork, FirstOrderOptimizerConfig
+from zeroth.core.abstract import NeuralNetwork, NeuralNetworkConfig, Optimizer
+from zeroth.core.losses import Loss
+from zeroth.core.data import Data
 
 
 @dataclass(frozen=True)
@@ -30,48 +36,48 @@ class ModelConfig:
 
 
 @dataclass(frozen=True)
-class ModelBackpropagationConfig(ModelConfig):
+class FirstOrderModelConfig(ModelConfig):
     neural_network_config: NeuralNetworkConfig
-    optimizer_config: OptimizerBackpropConfig
+    optimizer_config: FirstOrderOptimizerConfig
 
     def instantiate(self):
-        return ModelBackpropagation(self)
+        return FirstOrderModel(self)
 
 
 @dataclass(frozen=True)
-class ModelPerturbationConfig(ModelConfig):
+class ZerothOrderModelConfig(ModelConfig):
     neural_network_config: NeuralNetworkConfig
-    optimizer_config: OptimizerPerturbationConfig
-    perturbation_config: PerturbationConfig
+    optimizer_config: ZerothOrderOptimizerConfig
+    gradient_estimator_config: GradientEstimatorConfig
 
     def instantiate(self):
-        return ModelPerturbation(self)
+        return ZerothOrderModel(self)
 
 
 class Model(ABC):
     """
     Base class orchestrating the training and testing loop.
 
-    This class abstracts the common logic for training
-    regardless of the underlying engine (Backpropagation or spsa).
+    This class abstracts the abstract logic for training
+    regardless of the underlying engine (Backpropagation or zeroth_order).
     """
 
     def __init__(self, config: ModelConfig):
 
-        self.name = config.name
-        self.id = config.id
-        self.loss = config.loss
-        self.metric = config.metric
-        self.batch_size = config.batch_size
-        self.nb_epochs = config.nb_epochs
-        self.neural_network = None
-        self.optimizer = None
+        self.name: str = config.name
+        self.id: dict = config.id
+        self.loss: Loss = config.loss
+        self.metric: Callable = config.metric
+        self.batch_size: int = config.batch_size
+        self.nb_epochs: int = config.nb_epochs
+        self.neural_network: NeuralNetwork | None = None
+        self.optimizer: Optimizer | None = None
 
-        self.train_loss = []
-        self.test_loss = None
-        self.test_accuracy = None
+        self.train_loss: np.ndarray = np.array([])
+        self.test_loss: float | None = None
+        self.test_accuracy: float | None = None
 
-    def train(self, data, nb_print=0):
+    def train(self, data: Data, nb_print: int = 0):
         """Runs the training loop over the dataset.
 
         Args:
@@ -84,7 +90,7 @@ class Model(ABC):
 
         nb_batches = data.nb_data // self.batch_size
 
-        losses = np.zeros([self.nb_epochs * nb_batches])
+        self.train_loss = np.zeros(self.nb_epochs * nb_batches, dtype=np.float64)
 
         print_indexes = np.linspace(0, nb_batches - 1, nb_print).astype(int)
         print(f"    Training {self.id} Model")
@@ -94,37 +100,45 @@ class Model(ABC):
             for batch_idx in range(nb_batches):
 
                 avg_loss = self.optimizer.do_descent(self.neural_network, self.loss, data, batch_idx)
-                losses[epoch_idx * nb_batches + batch_idx] = avg_loss
+                self.train_loss[epoch_idx * nb_batches + batch_idx] = avg_loss
 
                 if batch_idx in print_indexes:
                     print(f"            batch n°{batch_idx + 1} out of {nb_batches}, "
-                          f"loss : {np.round(losses[epoch_idx * nb_batches + batch_idx], 3)}")
+                          f"loss : {np.round(self.train_loss[epoch_idx * nb_batches + batch_idx], 3)}")
             self.test(data)
-        self.train_loss += list(losses)
+
+    def plot_loss(self, ax: Axes, label: str, smooth_span: int = 50):
+        ax.plot(self.train_loss, alpha=0.25, linewidth=1.0)
+        smooth = self.smooth_curve(self.train_loss, smooth_span)
+        ax.plot(smooth, label=label, linewidth=2.5)
+
+    @staticmethod
+    def smooth_curve(loss: np.ndarray, smooth_span: int) -> np.ndarray:
+        return np.exp(pd.Series(np.log(loss)).ewm(span=smooth_span, adjust=True).mean())
 
     def test(self, data):
         X_test, Y_true = data.X_test, data.Y_test  # (in, batch), (out, batch)
-        Y_pred = self.neural_network.get_output(X_test)  # (out, batch)
+        Y_pred = self.neural_network.forward(X_test)  # (out, batch)
 
         self.test_accuracy = self.metric(Y_pred, Y_true)
-        self.test_loss = self.loss.get_avg_loss(Y_pred, Y_true)
+        self.test_loss = self.loss.compute_loss(Y_pred, Y_true)
 
         print(f"    {self.id} accuracy : {self.test_accuracy}, loss : {self.test_loss}")
 
 
-class ModelBackpropagation(Model):
-    def __init__(self, config: ModelBackpropagationConfig):
+class FirstOrderModel(Model):
+    def __init__(self, config: FirstOrderModelConfig):
         super().__init__(config)
 
-        self.neural_network = NeuralNetworkBackpropagation(config.neural_network_config)
+        self.neural_network = FirstOrderNeuralNetwork(config.neural_network_config)
         self.optimizer = config.optimizer_config.instantiate()
 
 
-class ModelPerturbation(Model):
-    def __init__(self, config: ModelPerturbationConfig):
+class ZerothOrderModel(Model):
+    def __init__(self, config: ZerothOrderModelConfig):
         super().__init__(config)
 
-        self.neural_network = NeuralNetworkPerturbation(config.neural_network_config)
+        self.neural_network: ZerothOrderNeuralNetwork = ZerothOrderNeuralNetwork(config.neural_network_config)
         nb_params = self.neural_network.params.nb_params
-        self.perturbation = config.perturbation_config.instantiate(nb_params)
-        self.optimizer = config.optimizer_config.instantiate(self.perturbation)
+        self.gradient_estimator: GradientEstimator = config.gradient_estimator_config.instantiate(nb_params)
+        self.optimizer: Optimizer = config.optimizer_config.instantiate(self.gradient_estimator)

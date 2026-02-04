@@ -2,3 +2,6 @@
 **/__pycache__/
 *.pyc
 /results/
+
+/zeroth/core/quantum/
+/zeroth/lab/sinus_vs_square/

@@ -1,12 +1,12 @@
 import numpy as np
 
-from zeroth.core.activation_functions import relu
+from zeroth.core.utils.activation_functions import relu
 
 
-class Params:
-    """Manages the flattening and reshaping of neural network parameters for spsa.
+class ParameterManager:
+    """Manages the flattening and reshaping of neural network parameters for zeroth_order.
 
-        In spsa, we treat the entire network as a single vector Theta to apply perturbations.
+        In zeroth_order, we treat the entire network as a single vector Theta to apply perturbations.
         This class handles the mapping between:
         - The structured list of matrices (Ws, Bs) used for forward pass.
         - The flat vector (Theta) used for perturbation logic.
@@ -62,7 +62,7 @@ class Params:
             self.Bs.append(self.Theta[idx:idx + size].reshape(shape))
             idx += size
 
-    def from_pThetas(self, Thetas):
+    def from_pThetas(self, Thetas: np.ndarray):
         """Reconstructs temporary weight/bias matrices from a batch of perturbed Thetas.
 
         This is used to perform the forward pass on multiple perturbed models in parallel.

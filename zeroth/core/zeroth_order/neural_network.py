@@ -1,21 +1,20 @@
-from zeroth.core.common.neural_network import NeuralNetwork, NeuralNetworkConfig
-from zeroth.core.spsa.params import Params
+from zeroth.core.abstract.neural_network import NeuralNetwork, NeuralNetworkConfig
+from zeroth.core.zeroth_order.parameter_manager import ParameterManager
 
 
-class NeuralNetworkPerturbation(NeuralNetwork):
-    """Neural Network implementation optimized for spsa (parameter vector manipulation).
+class ZerothOrderNeuralNetwork(NeuralNetwork):
+    """Neural Network implementation optimized for zeroth_order (parameter vector manipulation).
 
     Attributes:
-        params (Params): Handler for flattening/reshaping weights (Theta <-> Ws/Bs).
+        params (ParameterManager): Handler for flattening/reshaping weights (Theta <-> Ws/Bs).
     """
     def __init__(self, config: NeuralNetworkConfig):
-        self.name = config.name
-        self.params = Params()
+        self.name: str = config.name
+        self.params: ParameterManager = ParameterManager()
         for layer_config in config.layers_config:
             self.params.push_layer(layer_config.output_dim,
                                    layer_config.input_dim,
                                    layer_config.f)
-        self.perturbations = None
 
     def init_params(self, Ws, Bs):
         self.params.Ws = Ws
@@ -29,7 +28,7 @@ class NeuralNetworkPerturbation(NeuralNetwork):
         Ws, Bs = self.get_params()
         print(f"Ws : {Ws[:10]}, Bb : {Bs[:10]}")
 
-    def get_output(self, X):
+    def forward(self, X):
         """Standard forward pass using the current nominal weights.
 
         Args:
@@ -42,7 +41,7 @@ class NeuralNetworkPerturbation(NeuralNetwork):
             X = f(W @ X + B)
         return X
 
-    def get_p_output(self, X, perturbation):
+    def forward_perturbed(self, X, perturbation):
         """Parallel forward pass for multiple perturbed versions of the network.
 
         This method broadcasts the input X across T perturbed parameter sets

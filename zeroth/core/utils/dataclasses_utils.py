@@ -1,14 +1,10 @@
-from dataclasses import dataclass, is_dataclass, fields, replace, asdict
-import itertools
-
-from zeroth.core.model import Model, ModelConfig
-from zeroth.core.utils import get_name
+from dataclasses import is_dataclass, fields, replace, asdict
 
 
-@dataclass(frozen=True)
-class VariationConfig:
-    param: str
-    values: list
+def get_name(value):
+    if hasattr(value, "name"):
+        return value.name
+    return value
 
 
 def generate_param_map(config_instance, prefix="", param_map=None) -> dict:
@@ -53,30 +49,6 @@ def set_value_by_path(obj, path: str, value):
 
     return replace(obj, **{field_name: new_child})
 
-
-def generate_models(base_model: ModelConfig, variations: list[VariationConfig]) -> list[Model]:
-
-    models = []
-
-    names = [v.param for v in variations]
-    values = [v.values for v in variations]
-
-    # key: param  value: path
-    PARAM_MAP = generate_param_map(base_model)
-
-    for combination in itertools.product(*values):
-        id_ = {}
-        for key, val in zip(names, combination):
-            id_[key] = get_name(val)
-        current_model = base_model
-        for param_key, value in zip(names, combination):
-            path = PARAM_MAP[param_key]
-            current_model = set_value_by_path(current_model, path, value)
-
-        current_model = replace(current_model, id=id_)
-        models.append(current_model.instantiate())
-
-    return models
 
 def config_serializer(obj):
     if is_dataclass(obj):

@@ -1,36 +1,36 @@
 import numpy as np
 
 
-def relu(x):
+def relu(x:np.ndarray) -> np.ndarray:
     return np.maximum(x, 0)
 
 
-def heaviside(x):
+def heaviside(x: np.ndarray) -> np.ndarray:
     return np.heaviside(x, 0).astype(int)
 
 
-def sigmoid(x):
+def sigmoid(x: np.ndarray) -> np.ndarray:
     return 1 / (1 + np.exp(-x))
 
 
-def softmax(x):
+def softmax(x: np.ndarray) -> np.ndarray:
     """
     Stabilization: We subtract the maximum to avoid overflow (inf)
     axis=-2 is important for handling:
     - (output_dim, batch) -> standard calculation
-    - (T, output_dim, batch) -> calculation for spsa
+    - (T, output_dim, batch) -> calculation for zeroth_order
     """
     shift_x = x - np.max(x, axis=-2, keepdims=True)
     e = np.exp(shift_x)
     return e / np.sum(e, axis=-2, keepdims=True)
 
 
-def sigmoid_derivative(x):
+def sigmoid_derivative(x: np.ndarray) -> np.ndarray:
     s = sigmoid(x)
     return s * (1 - s)
 
 
-def identity(x):
+def identity(x:np.ndarray) -> np.ndarray:
     return x
 
 

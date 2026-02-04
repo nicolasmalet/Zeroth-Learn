@@ -60,7 +60,7 @@ Model (training loop orchestration)
 3.  **Run a benchmark experiment:**
     To train a linear MLP on MNIST using SPSA with 50 perturbations:
     ```bash
-    python -m zeroth.lab
+    python -m zeroth.lab.mnist
     ```
 ---
 
@@ -126,7 +126,7 @@ grad = np.einsum('ij,ik->k', L_diff, self.Ps) / (batch_size * T * delta)
 - Grid search over learning rates × architectures
 - Identified stability thresholds (divergence boundaries)
 
-![Learning Rate Analysis](assets/plots/lr_adam.png)
+<img alt="Learning Rate Analysis" src="assets/plots/lr_adam.png" height="300">
 
 **Finding**: Adam requires lr ~ 0.001 for networks with 10K to 100K parameters to avoid gradient explosion in SPSA.
 
@@ -136,7 +136,7 @@ grad = np.einsum('ij,ik->k', L_diff, self.Ps) / (batch_size * T * delta)
 - Trained 6 models from 7K to 1.3M parameters (here are the first three)
 - Measured convergence speed vs parameter count
 
-![Architecture Scaling](assets/plots/small_sizes.png)
+<img alt="Architecture Scaling" src="assets/plots/small_sizes.png" height="300"/>
 
 **Finding**: Models with 100K parameters are sufficient to get 97% accuracy
 
@@ -146,7 +146,7 @@ grad = np.einsum('ij,ik->k', L_diff, self.Ps) / (batch_size * T * delta)
 - Varied perturbation count T ∈ {10, 30, 100}
 - Measured gradient variance vs. computational cost
 
-![Perturbation Analysis](assets/plots/nb_perturbations.png)
+<img alt="Perturbation Analysis" src="assets/plots/nb_perturbations.png" height="300"/>
 
 **Finding**: As gradient approximation variance reduction follows $\sigma \propto 1/\sqrt{T}$, we get marginal returns beyond T=30.
 
@@ -165,8 +165,8 @@ grad = np.einsum('ij,ik->k', L_diff, self.Ps) / (batch_size * T * delta)
 ```python
   @dataclass(frozen=True)
   class OptimizerCatalog:
-      AdamBackprop: AdamBackpropConfig = AdamBackpropConfig(lr=0.001, ...)
-      AdamPerturbation: AdamPerturbConfig = AdamPerturbConfig(lr=0.001, ...)
+      FirstOrderAdam: FirstOrderAdamConfig = FirstOrderAdamConfig(lr=0.001, ...)
+      ZerothOrderAdam: ZerothOrderAdamConfig = ZerothOrderAdamConfig(lr=0.001, ...)
 ```
   Enables experiment generation via `itertools.product`.
 
@@ -215,22 +215,22 @@ grad = np.einsum('ij,ik->k', L_diff, self.Ps) / (batch_size * T * delta)
 ```
 zeroth/
 ├── core/
-│   ├── backpropagation/       # Analytical gradient methods
-│   │   ├── layer.py           # Forward/backward pass logic
-│   │   └── optimizers.py      # SGD, Adam implementations
-│   ├── spsa/                  # Zeroth-order methods
-│   │   ├── perturbations.py   # Gradient estimation strategies
-│   │   ├── params.py          # Parameter vector management
-│   │   └── optimizers.py      # SPSA + Adam/SGD variants
-│   ├── common/                # Shared abstractions
-│   │   ├── losses.py          # MSE, CrossEntropy
-│   │   ├── neural_network.py  # Abstract base class
-│   │   └── optimizer.py       # Optimizer interface
-│   └── experiment.py          # Experiment orchestration
+│   ├── first-order/                # Analytical gradient methods
+│   │   ├── layer.py                # Forward/backward pass logic
+│   │   └── optimizers.py           # SGD, Adam implementations
+│   ├── zeroth-order/               # Zeroth-order methods
+│   │   ├── gradient_estimator.py   # Gradient estimation strategies
+│   │   ├── parameter_manager.py    # Parameter vector management
+│   │   └── optimizers.py           # SPSA + Adam/SGD variants
+│   ├── common/                     # Shared abstractions
+│   │   ├── losses.py               # MSE, CrossEntropy
+│   │   ├── neural_network.py       # Abstract base class
+│   │   └── optimizer.py            # Optimizer interface
+│   └── experiment.py               # Experiment orchestration
 └── lab/
-    ├── experiments.py         # Pre-configured experiments
-    ├── models.py              # Model definitions
-    └── config.py              # Hyperparameter catalogs
+    ├── experiments.py              # Pre-configured experiments
+    ├── models.py                   # Model definitions
+    └── config.py                   # Hyperparameter catalogs
 ```
 
 ---

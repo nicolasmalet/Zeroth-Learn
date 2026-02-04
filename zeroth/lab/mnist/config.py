@@ -1,36 +1,46 @@
 from dataclasses import dataclass
 
-import zeroth.core.activation_functions as af
-from zeroth.core import backpropagation as bp, spsa
-from zeroth.core.utils import rademacher_matrix
-from zeroth.core.common import LayerConfig, NeuralNetworkConfig
-
+import zeroth.core.utils.activation_functions as af
+from zeroth.core import first_order as first, zeroth_order as zeroth
+from zeroth.core.utils.perturbation_matrices import rademacher_matrix
+from zeroth.core.abstract import LayerConfig, NeuralNetworkConfig
 
 INPUT_DIM = 28 ** 2
 
+DEFAULT_PERTURBATION_SCALE = 1e-8
+DEFAULT_ADAM_LEARNING_RATE = 1e-3
+DEFAULT_SGD_LEARNING_RATE = 0.1
+DEFAULT_NB_PERTURBATION = 50
+
+BETA1, BETA2 = 0.9, 0.99
+EPSILON = 1e-8
+
+
 @dataclass(frozen=True)
-class PerturbationCatalog:
-    OneByOne: spsa.OneByOneConfig = spsa.OneByOneConfig(dA=1e-8)
-    Multiplex: spsa.MultiplexConfig = spsa.MultiplexConfig(dA=1e-8,
-                                                           nb_perturbations=50,
-                                                           get_perturbation_matrix=rademacher_matrix)
+class GradientEstimatorCatalog:
+    FiniteDifference: zeroth.FiniteDifferenceConfig = zeroth.FiniteDifferenceConfig(dA=DEFAULT_PERTURBATION_SCALE)
+    SimultaneousPerturbation: zeroth.SimultaneousPerturbationConfig = zeroth.SimultaneousPerturbationConfig(
+        dA=DEFAULT_PERTURBATION_SCALE,
+        nb_perturbations=DEFAULT_NB_PERTURBATION,
+        get_perturbation_matrix=rademacher_matrix)
 
 
-PERTURBATIONS = PerturbationCatalog()
+GRADIENT_ESTIMATORS = GradientEstimatorCatalog()
 
 
 @dataclass(frozen=True)
 class OptimizerCatalog:
-    SGDBackpropagation: bp.SGDBackpropagationConfig = bp.SGDBackpropagationConfig(learning_rate=0.1)
-    AdamBackpropagation: bp.AdamBackpropagationConfig = bp.AdamBackpropagationConfig(learning_rate=0.001,
-                                                       beta1=0.9,
-                                                       beta2=0.99,
-                                                       epsilon=1e-8)
-    SGDPerturbation: spsa.SGDPerturbationConfig = spsa.SGDPerturbationConfig(learning_rate=0.1)
-    AdamPerturbation: spsa.AdamPerturbationConfig = spsa.AdamPerturbationConfig(learning_rate=0.001,
-                                                   beta1=0.9,
-                                                   beta2=0.99,
-                                                   epsilon=1e-8)
+    FirstOrderSGD: first.FirstOrderSGDConfig = first.FirstOrderSGDConfig(learning_rate=DEFAULT_SGD_LEARNING_RATE)
+    FirstOrderAdam: first.FirstOrderAdamConfig = first.FirstOrderAdamConfig(learning_rate=DEFAULT_ADAM_LEARNING_RATE,
+                                                                            beta1=BETA1,
+                                                                            beta2=BETA2,
+                                                                            epsilon=EPSILON)
+    ZerothOrderSGD: zeroth.ZerothOrderSGDConfig = zeroth.ZerothOrderSGDConfig(learning_rate=DEFAULT_SGD_LEARNING_RATE)
+    ZerothOrderAdam: zeroth.ZerothOrderAdamConfig = zeroth.ZerothOrderAdamConfig(
+        learning_rate=DEFAULT_ADAM_LEARNING_RATE,
+        beta1=BETA1,
+        beta2=BETA2,
+        epsilon=EPSILON)
 
 
 OPTIMIZERS = OptimizerCatalog()

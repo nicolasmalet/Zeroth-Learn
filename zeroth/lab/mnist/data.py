@@ -1,6 +1,8 @@
 from zeroth.core import Data
-import numpy as np
+
 from sklearn.datasets import fetch_openml
+
+import numpy as np
 
 
 def create_data_mnist():

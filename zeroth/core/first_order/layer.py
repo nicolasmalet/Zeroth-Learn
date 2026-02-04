@@ -1,10 +1,10 @@
 import numpy as np
 
-from zeroth.core.activation_functions import get_df
+from zeroth.core.utils.activation_functions import get_df
 
 
 class Layer:
-    """Represents a fully connected layer in a neural network using backpropagation.
+    """Represents a fully connected layer in a neural network using first_order.
 
     Attributes:
         W (np.ndarray): Weight matrix of shape (output_dim, input_dim).
@@ -34,7 +34,7 @@ class Layer:
         self.Z = np.array([])
         self.A = np.array([])
 
-    def get_output(self, X: np.ndarray) -> np.ndarray:
+    def forward(self, X: np.ndarray) -> np.ndarray:
         """Performs the forward pass.
 
         Args:
@@ -48,7 +48,7 @@ class Layer:
         self.A = self.f(self.Z)
         return self.A
 
-    def get_gradient(self, dL_dA: np.ndarray):
+    def get_gradient(self, dL_dA: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Computes gradients during the backward pass.
 
         Args:
@@ -71,7 +71,7 @@ class Layer:
 
         return dL_dA_prev, dL_dW, dL_dB
 
-    def update_layer(self, dW: np.ndarray, dB: np.ndarray, learning_rate: float):
+    def update_layer(self, dW: np.ndarray, dB: np.ndarray, learning_rate: float) -> None:
         """Updates the parameters of the layer using the given gradients.
 
         Args:

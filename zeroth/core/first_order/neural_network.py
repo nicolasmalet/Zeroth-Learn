@@ -1,8 +1,10 @@
-from zeroth.core.common.neural_network import NeuralNetwork, NeuralNetworkConfig
-from zeroth.core.backpropagation.layer import Layer
+import numpy as np
+
+from zeroth.core.abstract.neural_network import NeuralNetwork, NeuralNetworkConfig
+from zeroth.core.first_order.layer import Layer
 
 
-class NeuralNetworkBackpropagation(NeuralNetwork):
+class FirstOrderNeuralNetwork(NeuralNetwork):
     """Standard Feed-Forward Neural Network consisting of a sequence of Layers.
 
     Attributes:
@@ -36,7 +38,7 @@ class NeuralNetworkBackpropagation(NeuralNetwork):
         Ws, Bs = self.get_params()
         print(f"Ws : {Ws[:10]}, Bb : {Bs[:10]}")
 
-    def get_output(self, X):
+    def forward(self, X: np.ndarray) -> np.ndarray:
         """Sequentially passes the input through all layers.
 
         Note:
@@ -44,7 +46,7 @@ class NeuralNetworkBackpropagation(NeuralNetwork):
             which is required for the backward pass.
         """
         for layer in self.layers:
-            X = layer.get_output(X)
+            X = layer.forward(X)
         return X
 
     def show_weights(self):

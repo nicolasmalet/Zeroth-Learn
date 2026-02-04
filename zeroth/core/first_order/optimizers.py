@@ -1,13 +1,19 @@
+from zeroth.core.first_order.neural_network import FirstOrderNeuralNetwork
+from zeroth.core.abstract.optimizer import Optimizer
+from zeroth.core.first_order.layer import Layer
+from zeroth.core.losses import Loss
+from zeroth.core.data.data import Data
+
+
+
 from collections import defaultdict
 from dataclasses import dataclass
 from abc import abstractmethod
 import numpy as np
 
-from zeroth.core.common.optimizer import Optimizer
-from zeroth.core.backpropagation.layer import Layer
 
 @dataclass(frozen=True)
-class OptimizerBackpropConfig:
+class FirstOrderOptimizerConfig:
     learning_rate: float
 
     def instantiate(self):
@@ -15,14 +21,14 @@ class OptimizerBackpropConfig:
 
 
 @dataclass(frozen=True)
-class SGDBackpropagationConfig(OptimizerBackpropConfig):
+class FirstOrderSGDConfig(FirstOrderOptimizerConfig):
     name = "SGD"
     def instantiate(self):
-        return SGDBackpropagation(self)
+        return FirstOrderSGD(self)
 
 
 @dataclass(frozen=True)
-class AdamBackpropagationConfig(OptimizerBackpropConfig):
+class FirstOrderAdamConfig(FirstOrderOptimizerConfig):
 
     name = "Adam"
     beta1: float
@@ -30,16 +36,16 @@ class AdamBackpropagationConfig(OptimizerBackpropConfig):
     epsilon: float
 
     def instantiate(self):
-        return AdamBackpropagation(self)
+        return FirstOrderAdam(self)
 
 
-class OptimizerBackprop(Optimizer):
-    """Abstract base class for gradient descent optimizers using backpropagation."""
+class FirstOrderOptimizer(Optimizer):
+    """Abstract base class for gradient descent optimizers using first_order."""
 
     def __init__(self, learning_rate):
         self.learning_rate = learning_rate
 
-    def do_descent(self, neural_network, loss, data, batch_index):
+    def do_descent(self, neural_network: FirstOrderNeuralNetwork, loss: Loss, data: Data, batch_index: int) -> float:
         """Performs a full forward and backward pass for a single batch.
 
         1. Computes the output (Forward).
@@ -58,10 +64,10 @@ class OptimizerBackprop(Optimizer):
         """
         # 1. Forward Pass
         X = data.X_train[batch_index]
-        Y_pred = neural_network.get_output(X)
+        Y_pred = neural_network.forward(X)
         last_layer = neural_network.layers[-1]
 
-        avg_loss, dL_dZ = loss.get_backprop_init(last_layer, Y_pred, data, batch_index)
+        avg_loss, dL_dZ = loss.compute_losses_for_first_order(last_layer, Y_pred, data, batch_index)
 
         m = last_layer.X.shape[1]
         dW = np.matmul(dL_dZ, last_layer.X.T) / m
@@ -80,45 +86,45 @@ class OptimizerBackprop(Optimizer):
         self.end_of_batch()
         return avg_loss
 
-    def _apply_and_update(self, layer, dW, dB):
+    def _apply_and_update(self, layer: Layer, dW: np.ndarray, dB: np.ndarray) -> None:
         final_dW, final_dB = self.apply_update_rule(layer, dW, dB)
         layer.update_layer(final_dW, final_dB, self.learning_rate)
 
     @abstractmethod
-    def apply_update_rule(self, layer, dW, dB):
+    def apply_update_rule(self, layer: Layer, dW: np.ndarray, dB: np.ndarray):
         pass
 
     def end_of_batch(self):
         pass
 
 
-class SGDBackpropagation(OptimizerBackprop):
-    def __init__(self, config: SGDBackpropagationConfig):
+class FirstOrderSGD(FirstOrderOptimizer):
+    def __init__(self, config: FirstOrderSGDConfig):
         super().__init__(config.learning_rate)
 
-    def apply_update_rule(self, layer, dW, dB):
+    def apply_update_rule(self, layer: Layer, dW: np.ndarray, dB: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         return dW, dB
 
 
-class AdamBackpropagation(OptimizerBackprop):
+class FirstOrderAdam(FirstOrderOptimizer):
     """Implements the Adam optimization algorithm.
 
     Adam (Adaptive Moment Estimation) stores moving averages of the gradients (m)
     and squared gradients (v) to adapt the learning rate for each parameter.
     """
 
-    def __init__(self, config: AdamBackpropagationConfig):
+    def __init__(self, config: FirstOrderAdamConfig):
         super().__init__(config.learning_rate)
-        self.beta1 = config.beta1
-        self.beta2 = config.beta2
-        self.epsilon = config.epsilon
+        self.beta1: float = config.beta1
+        self.beta2: float = config.beta2
+        self.epsilon: float = config.epsilon
 
-        self.beta1t = config.beta1
-        self.beta2t = config.beta2
+        self.beta1t: float = config.beta1
+        self.beta2t: float = config.beta2
         self.m: dict[tuple[Layer, str], float | np.ndarray] = defaultdict(float)
         self.v: dict[tuple[Layer, str], float | np.ndarray] = defaultdict(float)
 
-    def apply_update_rule(self, layer, dW, dB):
+    def apply_update_rule(self, layer: Layer, dW: np.ndarray, dB: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         """Computes the adaptive update step for a specific layer.
 
         Args:

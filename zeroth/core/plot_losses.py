@@ -1,10 +1,9 @@
-import matplotlib.pyplot as plt
-import numpy as np
+from zeroth.core.model import Model
+
 from matplotlib.axes import Axes
-import pandas as pd
 from cycler import cycler
 
-from zeroth.core.model import Model
+import matplotlib.pyplot as plt
 
 def set_style():
     plt.rcParams.update({
@@ -46,18 +45,7 @@ def format_ax(ax: Axes):
     ax.spines['right'].set_visible(False)
 
 
-def smooth_curve(loss: np.ndarray, smooth_span: int) -> np.ndarray:
-    return np.exp(pd.Series(np.log(loss)).ewm(span=smooth_span, adjust=True).mean())
-
-
-def plot_curve(ax: Axes, model: Model, label: str, smooth_span: int):
-    loss = model.train_loss
-    ax.plot(loss, alpha=0.25, linewidth=1.0)
-    smooth = smooth_curve(loss, smooth_span)
-    ax.plot(smooth, label=label, linewidth=2.5)
-
-
-def plot_0d(models: list, title: str, smooth_span: int = 50):
+def plot_0d(models: list[Model], title: str, smooth_span: int = 50):
     """
     Plots a single graph overlaying multiple models that share the same hyperparameters.
     """
@@ -66,7 +54,7 @@ def plot_0d(models: list, title: str, smooth_span: int = 50):
     for model in models:
         others = [f"{k}={v}" for k, v in model.id.items()]
         label = ", ".join(others)
-        plot_curve(ax, model, label, smooth_span)
+        model.plot_loss(ax, label, smooth_span)
 
         format_ax(ax)
 
@@ -83,7 +71,7 @@ def plot_0d(models: list, title: str, smooth_span: int = 50):
                    bbox_to_anchor=(0.5, 0), frameon=False, fontsize=9)
 
 
-def plot_1d(models: list, title: str, key: str, smooth_span: int = 50):
+def plot_1d(models: list[Model], title: str, key: str, smooth_span: int = 50):
     """
     Plots a row of subplots, varying one hyperparameter (key) across columns.
     """
@@ -100,7 +88,7 @@ def plot_1d(models: list, title: str, key: str, smooth_span: int = 50):
             others = [f"{k}={v}" for k, v in model.id.items()
                       if k != key]
             label = ", ".join(others)
-            plot_curve(ax, model, label, smooth_span)
+            model.plot_loss(ax, label, smooth_span)
 
         format_ax(ax)
 
@@ -120,7 +108,7 @@ def plot_1d(models: list, title: str, key: str, smooth_span: int = 50):
                    bbox_to_anchor=(0.5, 0), frameon=False, fontsize=9)
 
 
-def plot_2d_grid(models: list, title: str, row_key: str, col_key: str, smooth_span: int = 50):
+def plot_2d_grid(models: list[Model], title: str, row_key: str, col_key: str, smooth_span: int = 50):
     """
     Plots a grid of subplots varying two hyperparameters: one across rows, one across columns.
 
@@ -146,7 +134,7 @@ def plot_2d_grid(models: list, title: str, row_key: str, col_key: str, smooth_sp
             for model in cell_models:
                 others = [f"{k}={v}" for k, v in model.id.items() if k not in [row_key, col_key]]
                 label = ", ".join(others)
-                plot_curve(ax, model, label, smooth_span)
+                model.plot_loss(ax, label, smooth_span)
 
             format_ax(ax)
 

@@ -1,10 +1,12 @@
-from dataclasses import dataclass
+from zeroth.core.utils.dataclasses_utils import get_catalog_values
+from zeroth.core.experiment import ExperimentConfig
+from zeroth.core import VariationConfig
 
-from zeroth.core.experiment import ExperimentConfig, VariationConfig
-from zeroth.core.dataclasses_utils import get_catalog_values
 from .config import NETWORKS, OPTIMIZERS
 from .data import create_data_mnist
 from .models import MODELS
+
+from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
@@ -17,11 +19,11 @@ class VariationCatalog:
     learning_rates_adam = VariationConfig(param="learning_rate", values=[0.0001, 0.0005, 0.001, 0.005])
     learning_rates_sgd = VariationConfig(param="learning_rate", values=[0.05, 0.1, 0.5, 1])
     optimizers_backprop = VariationConfig(param="optimizer_config",
-                                          values=[OPTIMIZERS.AdamBackpropagation,
-                                                  OPTIMIZERS.SGDBackpropagation])
+                                          values=[OPTIMIZERS.FirstOrderAdam,
+                                                  OPTIMIZERS.FirstOrderSGD])
     optimizers_spsa = VariationConfig(param="optimizer_config",
-                                      values=[OPTIMIZERS.AdamPerturbation,
-                                              OPTIMIZERS.SGDPerturbation])
+                                      values=[OPTIMIZERS.ZerothOrderAdam,
+                                              OPTIMIZERS.ZerothOrderSGD])
     nb_perturbations = VariationConfig(param="nb_perturbations", values=[10, 30, 100])
     beta1 = VariationConfig(param="beta1", values=[0.9, 0.95, 0.99])
     beta2 = VariationConfig(param="beta2", values=[0.95, 0.99, 0.999])
@@ -50,11 +52,11 @@ class ExperimentCatalog:
                                                          plot_dimension=1)
 
     lr_adam: ExperimentConfig = ExperimentConfig(name="lr_adam",
-                                                         title="Optimal Learning Rate with Adam optimizer",
-                                                         base_model=MODELS.backprop_xs_adam,
-                                                         variations=[VARIATIONS.learning_rates_adam],
-                                                         create_data=create_data_mnist,
-                                                         plot_dimension=0)
+                                                 title="Optimal Learning Rate with Adam optimizer",
+                                                 base_model=MODELS.backprop_xs_adam,
+                                                 variations=[VARIATIONS.learning_rates_adam],
+                                                 create_data=create_data_mnist,
+                                                 plot_dimension=0)
 
     lr_vs_size_sgd: ExperimentConfig = ExperimentConfig(name="lr_vs_size_sgd",
                                                         title="Optimal Learning Rate across Model Depths with SGD",
@@ -69,7 +71,7 @@ class ExperimentCatalog:
                                                    base_model=MODELS.backprop_s_adam_5epochs,
                                                    variations=[VARIATIONS.all_sizes],
                                                    create_data=create_data_mnist,
-                                                   plot_dimension=2)
+                                                   plot_dimension=1)
 
     small_sizes: ExperimentConfig = ExperimentConfig(name="small_sizes",
                                                      title="Effect of Network size on loss",
@@ -124,21 +126,20 @@ class ExperimentCatalog:
                                                     plot_dimension=0)
 
     nb_perturbations_vs_batch_size: ExperimentConfig = ExperimentConfig(name="nb_perturbations_vs_batch_size",
-                                                          title="Number of Perturbations vs Batch Sizes on Training Loss",
-                                                          base_model=MODELS.multiplex_linear_adam,
-                                                          variations=[VARIATIONS.nb_perturbations,
-                                                                      VARIATIONS.batch_sizes],
-                                                          create_data=create_data_mnist,
-                                                          plot_dimension=2)
+                                                                        title="Number of Perturbations vs Batch Sizes on Training Loss",
+                                                                        base_model=MODELS.multiplex_linear_adam,
+                                                                        variations=[VARIATIONS.nb_perturbations,
+                                                                                    VARIATIONS.batch_sizes],
+                                                                        create_data=create_data_mnist,
+                                                                        plot_dimension=2)
 
     nb_perturbations_vs_model_size: ExperimentConfig = ExperimentConfig(name="nb_perturbations_vs_model_size",
-                                                          title="Number of Perturbations vs Model Sizes on Training Loss",
-                                                          base_model=MODELS.multiplex_linear_adam,
-                                                          variations=[VARIATIONS.nb_perturbations,
-                                                                      VARIATIONS.small_networks],
-                                                          create_data=create_data_mnist,
-                                                          plot_dimension=1)
-
+                                                                        title="Number of Perturbations vs Model Sizes on Training Loss",
+                                                                        base_model=MODELS.multiplex_linear_adam,
+                                                                        variations=[VARIATIONS.nb_perturbations,
+                                                                                    VARIATIONS.small_networks],
+                                                                        create_data=create_data_mnist,
+                                                                        plot_dimension=1)
 
 
 EXPERIMENTS = ExperimentCatalog()

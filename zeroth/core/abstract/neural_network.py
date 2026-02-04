@@ -21,7 +21,7 @@ class NeuralNetwork(ABC):
     """
     Abstract Base Class defining the required interface for any Neural Network implementation.
 
-    Whether the network uses Backpropagation or spsa (Perturbation), it must implement
+    Whether the network uses Backpropagation or zeroth_order (Perturbation), it must implement
     these methods to be compatible with the Model and Experiment classes.
     """
 
@@ -36,7 +36,7 @@ class NeuralNetwork(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_params(self) -> tuple[list[np.ndarray], list[np.ndarray]]:
+    def get_params(self) -> tuple:
         """Retrieves the current parameters of the network.
 
         Returns:
@@ -45,7 +45,7 @@ class NeuralNetwork(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_output(self, X: np.ndarray) -> np.ndarray:
+    def forward(self, X: np.ndarray) -> np.ndarray:
         """Computes the forward pass.
 
         Args:
