@@ -12,5 +12,7 @@ dependencies = [
     "cycler"
 ]
 
-[tool.setuptools]
-packages = ["zeroth"]
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["zeroth*"]
+exclude = ["lab*"]
