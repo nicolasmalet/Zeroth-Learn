@@ -3,5 +3,7 @@
 *.pyc
 /results/
 
-/zeroth/core/quantum/
-/zeroth/lab/sinus_vs_square/
+/lab/quantum/
+pyproject.toml
+
+get_structure.py

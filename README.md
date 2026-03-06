@@ -60,7 +60,7 @@ Model (training loop orchestration)
 3.  **Run a benchmark experiment:**
     To train a linear MLP on MNIST using SPSA with 50 perturbations:
     ```bash
-    python -m zeroth.lab.mnist
+    python -m mnist.mnist.mnist
     ```
 ---
 
@@ -163,10 +163,10 @@ grad = np.einsum('ij,ik->k', L_diff, self.Ps) / (batch_size * T * delta)
 ### Modular Design
 - **Catalog pattern** for hyperparameters (see `config.py`):
 ```python
-  @dataclass(frozen=True)
-  class OptimizerCatalog:
-      FirstOrderAdam: FirstOrderAdamConfig = FirstOrderAdamConfig(lr=0.001, ...)
-      ZerothOrderAdam: ZerothOrderAdamConfig = ZerothOrderAdamConfig(lr=0.001, ...)
+@dataclass(frozen=True)
+class OptimizerCatalog:
+    FirstOrderAdam = FirstOrderAdamConfig(lr=0.001, ...)
+    ZerothOrderAdam = ZerothOrderAdamConfig(lr=0.001, ...)
 ```
   Enables experiment generation via `itertools.product`.
 
