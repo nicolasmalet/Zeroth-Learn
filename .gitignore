@@ -4,6 +4,5 @@
 /results/
 
 /lab/quantum/
-pyproject.toml
 
 get_structure.py
