@@ -6,12 +6,12 @@ from abc import ABC
 import pandas as pd
 import numpy as np
 
-from zeroth.zeroth_order import ZerothOrderNeuralNetwork, ZerothOrderOptimizerConfig, GradientEstimatorConfig, \
+from .zeroth_order import ZerothOrderNeuralNetwork, ZerothOrderOptimizerConfig, GradientEstimatorConfig, \
     GradientEstimator
-from zeroth.first_order import FirstOrderNeuralNetwork, FirstOrderOptimizerConfig
-from zeroth.abstract import BlackBox, NeuralNetworkConfig, Optimizer
-from zeroth.losses import Loss
-from zeroth.data import Data
+from .first_order import FirstOrderNeuralNetwork, FirstOrderOptimizerConfig
+from .abstract import BlackBox, NeuralNetworkConfig, Optimizer
+from .losses import Loss
+from .data import Data
 
 
 @dataclass(frozen=True)

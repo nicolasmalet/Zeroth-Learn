@@ -1,5 +1,5 @@
-from zeroth.model import (Model, ModelConfig, ZerothOrderModel, FirstOrderModel,
+from .model import (Model, ModelConfig, ZerothOrderModel, FirstOrderModel,
                           ZerothOrderModelConfig, FirstOrderModelConfig)
-from zeroth.experiment import Experiment, ExperimentConfig, VariationConfig
+from .experiment import Experiment, ExperimentConfig, VariationConfig
 
-from zeroth.data import Data
+from .data import Data

@@ -1,2 +1,2 @@
-from zeroth.abstract.blackbox import BlackBox, NeuralNetworkConfig, LayerConfig
-from zeroth.abstract.optimizer import Optimizer
+from .blackbox import BlackBox, NeuralNetworkConfig, LayerConfig
+from .optimizer import Optimizer

@@ -4,7 +4,7 @@ from .experiments import EXPERIMENTS
 
 def main(do_train, do_test, nb_print_train, do_plot_train, do_save):
 
-    experiment = EXPERIMENTS.first_experiment.instantiate()  # choose the experiment to run
+    experiment = EXPERIMENTS.nb_perturbations.instantiate()  # choose the experiment to run
     experiment.launch(do_train, do_test, nb_print_train,
                      do_plot_train, do_save)
 

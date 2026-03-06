@@ -1,7 +1,7 @@
-from zeroth.first_order.neural_network import FirstOrderNeuralNetwork
-from zeroth.abstract.optimizer import Optimizer
-from zeroth.first_order.layer import Layer
-from zeroth.losses import Loss
+from .neural_network import FirstOrderNeuralNetwork
+from ..abstract.optimizer import Optimizer
+from .layer import Layer
+from ..losses import Loss
 
 from collections import defaultdict
 from dataclasses import dataclass

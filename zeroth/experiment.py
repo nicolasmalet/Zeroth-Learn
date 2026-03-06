@@ -1,7 +1,7 @@
-from zeroth.utils.dataclasses_utils import config_serializer, generate_param_map, get_name, set_value_by_path
-from zeroth.model import ModelConfig, Model
-from zeroth.plot_losses import plot_losses
-from zeroth.data import Data
+from .utils.dataclasses_utils import config_serializer, generate_param_map, get_name, set_value_by_path
+from .model import ModelConfig, Model
+from .plot_losses import plot_losses
+from .data import Data
 
 from dataclasses import dataclass, replace
 from typing import Callable

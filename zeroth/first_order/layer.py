@@ -1,6 +1,6 @@
 import numpy as np
 
-from zeroth.utils.activation_functions import get_df
+from ..utils.activation_functions import get_df
 
 
 class Layer:

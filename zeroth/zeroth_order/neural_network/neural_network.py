@@ -1,9 +1,9 @@
 import numpy as np
 
-from zeroth.abstract.blackbox import NeuralNetworkConfig
-from zeroth.zeroth_order.zeroth_order_blackbox import ZerothOrderBlackBox
-from zeroth.zeroth_order import GradientEstimator
-from zeroth.zeroth_order.neural_network.parameter_manager import ParameterManager
+from ...abstract.blackbox import NeuralNetworkConfig
+from ..zeroth_order_blackbox import ZerothOrderBlackBox
+from .. import GradientEstimator
+from .parameter_manager import ParameterManager
 
 
 class ZerothOrderNeuralNetwork(ZerothOrderBlackBox):

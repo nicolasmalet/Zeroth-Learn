@@ -1,4 +1,4 @@
-from zeroth.zeroth_order.optimizers import ZerothOrderOptimizer, ZerothOrderOptimizerConfig, ZerothOrderSGDConfig, ZerothOrderAdamConfig
-from zeroth.zeroth_order.gradient_estimators import GradientEstimator, GradientEstimatorConfig, FiniteDifferenceConfig, SimultaneousPerturbationConfig
-from zeroth.zeroth_order.neural_network.neural_network import ZerothOrderNeuralNetwork
-from zeroth.zeroth_order.neural_network.parameter_manager import ParameterManager
+from .optimizers import ZerothOrderOptimizer, ZerothOrderOptimizerConfig, ZerothOrderSGDConfig, ZerothOrderAdamConfig
+from .gradient_estimators import GradientEstimator, GradientEstimatorConfig, FiniteDifferenceConfig, SimultaneousPerturbationConfig
+from .neural_network.neural_network import ZerothOrderNeuralNetwork
+from .neural_network.parameter_manager import ParameterManager

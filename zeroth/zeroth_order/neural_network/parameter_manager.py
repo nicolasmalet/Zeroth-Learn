@@ -1,6 +1,6 @@
 import numpy as np
 
-from zeroth.utils.activation_functions import relu
+from ...utils.activation_functions import relu
 
 
 class ParameterManager:

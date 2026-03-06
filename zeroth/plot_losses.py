@@ -1,4 +1,4 @@
-from zeroth.model import Model
+from .model import Model
 
 from matplotlib.axes import Axes
 from cycler import cycler
