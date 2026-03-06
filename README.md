@@ -60,7 +60,7 @@ Model (training loop orchestration)
 3.  **Run a benchmark experiment:**
     To train a linear MLP on MNIST using SPSA with 50 perturbations:
     ```bash
-    python -m mnist.mnist.mnist
+    python -m lab.mnist 
     ```
 ---
 
@@ -214,23 +214,24 @@ class OptimizerCatalog:
 ## Project Structure
 ```
 zeroth/
-├── core/
-│   ├── first-order/                # Analytical gradient methods
-│   │   ├── layer.py                # Forward/backward pass logic
-│   │   └── optimizers.py           # SGD, Adam implementations
-│   ├── zeroth-order/               # Zeroth-order methods
-│   │   ├── gradient_estimator.py   # Gradient estimation strategies
-│   │   ├── parameter_manager.py    # Parameter vector management
-│   │   └── optimizers.py           # SPSA + Adam/SGD variants
-│   ├── common/                     # Shared abstractions
-│   │   ├── losses.py               # MSE, CrossEntropy
-│   │   ├── neural_network.py       # Abstract base class
-│   │   └── optimizer.py            # Optimizer interface
-│   └── experiment.py               # Experiment orchestration
-└── lab/
-    ├── experiments.py              # Pre-configured experiments
-    ├── models.py                   # Model definitions
-    └── config.py                   # Hyperparameter catalogs
+│
+│── first-order/                # Analytical gradient methods
+│   ├── layer.py                # Forward/backward pass logic
+│   └── optimizers.py           # SGD, Adam implementations
+│── zeroth-order/               # Zeroth-order methods
+│   ├── gradient_estimator.py   # Gradient estimation strategies
+│   ├── parameter_manager.py    # Parameter vector management
+│   └── optimizers.py           # SPSA + Adam/SGD variants
+│── abstract/                   # Shared abstractions
+│   ├── neural_network.py       # Abstract base class
+│   └── optimizer.py            # Optimizer interface
+└── experiment.py               # Experiment orchestration
+
+lab/
+│
+├── experiments.py              # Pre-configured experiments
+├── models.py                   # Model definitions
+└── config.py                   # Hyperparameter catalogs
 ```
 
 ---
