@@ -1,17 +1,15 @@
-from dataclasses import dataclass
-from matplotlib.axes import Axes
-from typing import Callable
-from abc import ABC
-
-import pandas as pd
-import numpy as np
-
 from .zeroth_order import ZerothOrderNeuralNetwork, ZerothOrderOptimizerConfig, GradientEstimatorConfig, \
     GradientEstimator
 from .first_order import FirstOrderNeuralNetwork, FirstOrderOptimizerConfig
 from .abstract import BlackBox, NeuralNetworkConfig, Optimizer
+from .plot_losses import plot_losses
 from .losses import Loss
 from .data import Data
+
+from dataclasses import dataclass
+from typing import Callable
+from abc import ABC
+import numpy as np
 
 
 @dataclass(frozen=True)
@@ -107,14 +105,9 @@ class Model(ABC):
                           f"loss : {np.round(self.train_loss[epoch_idx * nb_batches + batch_idx], 3)}")
             self.test(data)
 
-    def plot_loss(self, ax: Axes, label: str, smooth_span: int = 50):
-        ax.plot(self.train_loss, alpha=0.25, linewidth=1.0)
-        smooth = self.smooth_curve(self.train_loss, smooth_span)
-        ax.plot(smooth, label=label, linewidth=2.5)
+    def plot_loss(self):
+        plot_losses(dimension=0, models=[self], title=self.name)
 
-    @staticmethod
-    def smooth_curve(loss: np.ndarray, smooth_span: int) -> np.ndarray:
-        return np.exp(pd.Series(np.log(loss)).ewm(span=smooth_span, adjust=True).mean())
 
     def test(self, data):
         X_test, Y_true = data.X_test, data.Y_test  # (in, batch), (out, batch)
