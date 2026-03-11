@@ -1,6 +1,5 @@
+from zeroth.experiment import ExperimentConfig, VariationConfig
 from zeroth.utils.dataclasses_utils import get_catalog_values
-from zeroth import ExperimentConfig
-from zeroth import VariationConfig
 
 from .configs import NETWORKS, OPTIMIZERS
 from .data import create_data_mnist

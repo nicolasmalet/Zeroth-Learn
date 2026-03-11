@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 
 
-def set_style():
+def set_style() -> None:
     plt.rcParams.update({
         "font.family": "serif",
         "font.serif": ["Times New Roman", "Times", "DejaVu Serif"],
@@ -36,8 +36,20 @@ def set_style():
         "#CCBB44", "#66CCEE", "#AA3377"
     ])
 
+    plt.rcParams.update({
+        "text.usetex": True,
+        "text.latex.preamble": (
+            r"\usepackage[T1]{fontenc} "
+            r"\usepackage{lmodern} "  # La police Overleaf
+            r"\usepackage{amsmath} "
+            r"\usepackage{amssymb} "
+            r"\usepackage{upgreek} "
+            r"\usepackage{bm} "
+        ),
+    })
 
-def format_ax(ax: Axes):
+
+def format_ax(ax: Axes) -> None:
     ax.set_axisbelow(True)
     ax.set_yscale('log')
     ax.grid(True, which="major", axis="y")
@@ -46,7 +58,7 @@ def format_ax(ax: Axes):
     ax.spines['right'].set_visible(False)
 
 
-def plot_loss(ax: Axes, train_loss: np.ndarray, label: str, smooth_span: int = 50):
+def plot_loss(ax: Axes, train_loss: np.ndarray, label: str, smooth_span: int = 50) -> None:
     ax.plot(train_loss, alpha=0.25, linewidth=1.0)
     smooth = smooth_curve(train_loss, smooth_span)
     ax.plot(smooth, label=label, linewidth=2.5)
@@ -57,7 +69,7 @@ def smooth_curve(loss: np.ndarray, smooth_span: int) -> np.ndarray:
 
 
 
-def plot_0d(models: list, title: str, smooth_span: int = 50):
+def plot_0d(models: list, title: str, smooth_span: int = 50) -> None:
     """
     Plots a single graph overlaying multiple models that share the same hyperparameters.
     """
@@ -71,7 +83,7 @@ def plot_0d(models: list, title: str, smooth_span: int = 50):
         format_ax(ax)
 
     plt.subplots_adjust(left=0.1, right=0.95, top=0.9, bottom=0.2)
-    fig.suptitle(title, fontweight='bold', fontsize=12)
+    fig.suptitle(rf"\textbf{{{title}}}", fontweight='bold', fontsize=12)
     ax.set_xlabel("Training steps")
     ax.set_ylabel("Training loss")
     format_ax(ax)
@@ -83,7 +95,7 @@ def plot_0d(models: list, title: str, smooth_span: int = 50):
                    bbox_to_anchor=(0.5, 0), frameon=False, fontsize=9)
 
 
-def plot_1d(models: list, title: str, key: str, smooth_span: int = 50):
+def plot_1d(models: list, title: str, key: str, smooth_span: int = 50) -> None:
     """
     Plots a row of subplots, varying one hyperparameter (key) across columns.
     """
@@ -111,7 +123,7 @@ def plot_1d(models: list, title: str, key: str, smooth_span: int = 50):
     fig.text(0.01, 0.5, "Training loss", va='center', rotation='vertical', fontsize=10)
 
     plt.subplots_adjust(left=0.05, right=0.96, top=0.85, bottom=0.2, wspace=0.10, hspace=0.18)
-    fig.suptitle(title, fontweight='bold', fontsize=12)
+    fig.suptitle(rf"\textbf{{{title}}}", fontweight='bold', fontsize=12)
 
     handles, labels = axs[0].get_legend_handles_labels()
 
@@ -120,7 +132,7 @@ def plot_1d(models: list, title: str, key: str, smooth_span: int = 50):
                    bbox_to_anchor=(0.5, 0), frameon=False, fontsize=9)
 
 
-def plot_2d_grid(models: list, title: str, row_key: str, col_key: str, smooth_span: int = 50):
+def plot_2d_grid(models: list, title: str, row_key: str, col_key: str, smooth_span: int = 50) -> None:
     """
     Plots a grid of subplots varying two hyperparameters: one across rows, one across columns.
 
@@ -160,7 +172,7 @@ def plot_2d_grid(models: list, title: str, row_key: str, col_key: str, smooth_sp
                         va="center", ha="left")
 
     plt.subplots_adjust(left=0.06, right=0.96, top=0.90, bottom=0.12, wspace=0.10, hspace=0.18)
-    fig.suptitle(title, fontsize=14, fontweight='bold', y=0.98)
+    fig.suptitle(rf"\textbf{{{title}}}", fontsize=14, fontweight='bold', y=0.98)
 
     handles, labels = axs[0, 0].get_legend_handles_labels()
     if handles:
@@ -172,7 +184,7 @@ def plot_2d_grid(models: list, title: str, row_key: str, col_key: str, smooth_sp
 
 
 
-def plot_losses(dimension: int, models: list, title: str, save_path: str = None, smooth_span: int = 100):
+def plot_losses(dimension: int, models: list, title: str, save_path: str = None, smooth_span: int = 100) -> None:
     """
     Main entry point for plotting. Automatically detects if the plot should be 0D, 1D, or 2D
     based on the number of variation parameters.

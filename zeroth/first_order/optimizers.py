@@ -1,7 +1,8 @@
-from .neural_network import FirstOrderNeuralNetwork
 from ..abstract.optimizer import Optimizer
+from ..abstract.loss import Loss
+from .neural_network import FirstOrderNeuralNetwork
 from .layer import Layer
-from ..losses import Loss
+
 
 from collections import defaultdict
 from dataclasses import dataclass

@@ -5,7 +5,7 @@ import numpy as np
 from .zeroth_order_blackbox import ZerothOrderBlackBox
 from .gradient_estimators import GradientEstimator
 from ..abstract.optimizer import Optimizer
-from ..losses import Loss
+from ..abstract.loss import Loss
 
 
 @dataclass(frozen=True)

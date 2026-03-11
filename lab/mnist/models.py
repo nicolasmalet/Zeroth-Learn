@@ -1,4 +1,5 @@
-from zeroth import FirstOrderModelConfig, ZerothOrderModelConfig
+from zeroth.first_order import FirstOrderModelConfig
+from zeroth.zeroth_order import ZerothOrderModelConfig
 from zeroth.utils.metrics import accuracy
 import zeroth.losses as losses
 

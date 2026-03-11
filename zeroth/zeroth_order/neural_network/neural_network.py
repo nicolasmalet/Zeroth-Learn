@@ -20,7 +20,7 @@ class ZerothOrderNeuralNetwork(ZerothOrderBlackBox):
                                    layer_config.input_dim,
                                    layer_config.f)
 
-    def init_params(self, params: tuple):
+    def init_params(self, params: tuple) -> None:
         Ws, Bs = params
         self.params.Ws = Ws
         self.params.Bs = Bs
@@ -29,7 +29,11 @@ class ZerothOrderNeuralNetwork(ZerothOrderBlackBox):
     def get_params(self) -> tuple:
         return self.params.Ws, self.params.Bs
 
-    def forward(self, X):
+    def print_params(self) -> None:
+        print(f"Ws : {self.params.Ws[:][:10]})")
+        print(f"Bs : {self.params.Bs[:][:10]}")
+
+    def forward(self, X: np.ndarray) -> np.ndarray:
         """Standard forward pass using the current nominal weights.
 
         Args:

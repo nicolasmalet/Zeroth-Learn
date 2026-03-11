@@ -2,3 +2,4 @@ from .optimizers import ZerothOrderOptimizer, ZerothOrderOptimizerConfig, Zeroth
 from .gradient_estimators import GradientEstimator, GradientEstimatorConfig, FiniteDifferenceConfig, SimultaneousPerturbationConfig
 from .neural_network.neural_network import ZerothOrderNeuralNetwork
 from .neural_network.parameter_manager import ParameterManager
+from .model import ZerothOrderModel, ZerothOrderModelConfig

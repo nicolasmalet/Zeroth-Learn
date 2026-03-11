@@ -1,15 +1,15 @@
-from .zeroth_order import ZerothOrderNeuralNetwork, ZerothOrderOptimizerConfig, GradientEstimatorConfig, \
-    GradientEstimator
-from .first_order import FirstOrderNeuralNetwork, FirstOrderOptimizerConfig
-from .abstract import BlackBox, NeuralNetworkConfig, Optimizer
-from .plot_losses import plot_losses
-from .losses import Loss
-from .data import Data
-
+from abc import ABC
 from dataclasses import dataclass
 from typing import Callable
-from abc import ABC
+
 import numpy as np
+
+from ..plot_losses import plot_losses
+from ..data import Data
+from .optimizer import Optimizer
+from .blackbox import BlackBox
+from .loss import Loss
+
 
 
 @dataclass(frozen=True)
@@ -30,27 +30,7 @@ class ModelConfig:
     nb_epochs: int
 
     def instantiate(self):
-        raise NotImplementedError
-
-
-@dataclass(frozen=True)
-class FirstOrderModelConfig(ModelConfig):
-    neural_network_config: NeuralNetworkConfig
-    optimizer_config: FirstOrderOptimizerConfig
-
-    def instantiate(self):
-        return FirstOrderModel(self)
-
-
-@dataclass(frozen=True)
-class ZerothOrderModelConfig(ModelConfig):
-    neural_network_config: NeuralNetworkConfig
-    optimizer_config: ZerothOrderOptimizerConfig
-    gradient_estimator_config: GradientEstimatorConfig
-
-    def instantiate(self):
-        return ZerothOrderModel(self)
-
+        pass
 
 class Model(ABC):
     """
@@ -75,7 +55,7 @@ class Model(ABC):
         self.test_loss: float | None = None
         self.test_accuracy: float | None = None
 
-    def train(self, data: Data, nb_print: int = 0):
+    def train(self, data: Data, nb_print: int = 0) -> None:
         """Runs the training loop over the dataset.
 
         Args:
@@ -105,11 +85,11 @@ class Model(ABC):
                           f"loss : {np.round(self.train_loss[epoch_idx * nb_batches + batch_idx], 3)}")
             self.test(data)
 
-    def plot_loss(self):
+    def plot_loss(self) -> None:
         plot_losses(dimension=0, models=[self], title=self.name)
 
 
-    def test(self, data):
+    def test(self, data: Data) -> None:
         X_test, Y_true = data.X_test, data.Y_test  # (in, batch), (out, batch)
         Y_pred = self.neural_network.forward(X_test)  # (out, batch)
 
@@ -117,21 +97,3 @@ class Model(ABC):
         self.test_loss = self.loss.compute_loss(Y_pred, Y_true)
 
         print(f"    {self.id} accuracy : {self.test_accuracy}, loss : {self.test_loss}")
-
-
-class FirstOrderModel(Model):
-    def __init__(self, config: FirstOrderModelConfig):
-        super().__init__(config)
-
-        self.neural_network = FirstOrderNeuralNetwork(config.neural_network_config)
-        self.optimizer = config.optimizer_config.instantiate()
-
-
-class ZerothOrderModel(Model):
-    def __init__(self, config: ZerothOrderModelConfig):
-        super().__init__(config)
-
-        self.neural_network: ZerothOrderNeuralNetwork = ZerothOrderNeuralNetwork(config.neural_network_config)
-        nb_params = self.neural_network.params.nb_params
-        self.gradient_estimator: GradientEstimator = config.gradient_estimator_config.instantiate(nb_params)
-        self.optimizer: Optimizer = config.optimizer_config.instantiate(self.gradient_estimator)

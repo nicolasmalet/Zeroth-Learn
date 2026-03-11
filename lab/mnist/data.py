@@ -1,4 +1,4 @@
-from zeroth import Data
+from zeroth.data import Data
 
 from sklearn.datasets import fetch_openml
 

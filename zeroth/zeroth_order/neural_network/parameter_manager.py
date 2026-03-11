@@ -1,6 +1,7 @@
-import numpy as np
-
 from ...utils.activation_functions import relu
+
+from typing import Callable
+import numpy as np
 
 
 class ParameterManager:
@@ -16,6 +17,7 @@ class ParameterManager:
             Bs (list[np.ndarray]): List of bias vectors.
             Theta (np.ndarray): The flattened parameter vector containing all Ws and Bs.
         """
+
     def __init__(self):
         self.Ws, self.Bs, self.fs = [], [], []
         self.W_shapes, self.B_shapes = [], []
@@ -23,7 +25,7 @@ class ParameterManager:
         self.nb_layers, self.nb_params = 0, 0
         self.Theta = np.array([])
 
-    def push_layer(self, output_dim, input_dim=None, f=relu):
+    def push_layer(self, output_dim: int, input_dim: int | None = None, f: Callable = relu) -> None:
         """Adds a layer to the structure and updates the flat Theta vector.
 
         Args:
@@ -46,11 +48,11 @@ class ParameterManager:
         self.nb_params += W.size + B.size
         self.update_theta()
 
-    def update_theta(self):
+    def update_theta(self) -> None:
         """Re-builds the flat Theta vector from the current Ws and Bs matrices."""
         self.Theta = np.concatenate([W.ravel() for W in self.Ws] + [B.ravel() for B in self.Bs])
 
-    def update_weights_and_biases(self):
+    def update_weights_and_biases(self) -> None:
         """Re-builds the Ws and Bs matrices from the current flat Theta vector."""
 
         self.Ws, self.Bs = [], []
@@ -62,7 +64,7 @@ class ParameterManager:
             self.Bs.append(self.Theta[idx:idx + size].reshape(shape))
             idx += size
 
-    def from_pThetas(self, Thetas: np.ndarray):
+    def from_pThetas(self, Thetas: np.ndarray) -> tuple[list[np.ndarray], list[np.ndarray]]:
         """Reconstructs temporary weight/bias matrices from a batch of perturbed Thetas.
 
         This is used to perform the forward pass on multiple perturbed models in parallel.

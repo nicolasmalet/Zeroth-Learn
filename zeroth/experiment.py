@@ -1,5 +1,5 @@
 from .utils.dataclasses_utils import config_serializer, generate_param_map, get_name, set_value_by_path
-from .model import ModelConfig, Model
+from .abstract import Model, ModelConfig
 from .plot_losses import plot_losses
 from .data import Data
 

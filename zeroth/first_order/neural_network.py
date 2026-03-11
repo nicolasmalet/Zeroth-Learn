@@ -37,7 +37,8 @@ class FirstOrderNeuralNetwork(BlackBox):
 
     def print_params(self):
         Ws, Bs = self.get_params()
-        print(f"Ws : {Ws[:10]}, Bb : {Bs[:10]}")
+        print(f"Ws : {Ws[:][:10]})")
+        print(f"Bs : {Bs[:][:10]}")
 
     def forward(self, X: np.ndarray) -> np.ndarray:
         """Sequentially passes the input through all layers.

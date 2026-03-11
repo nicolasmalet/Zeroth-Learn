@@ -8,7 +8,7 @@ import numpy as np
 class GradientEstimatorConfig:
     dA: float
     def instantiate(self, nb_params: int):
-        return NotImplementedError
+        pass
 
 
 @dataclass(frozen=True)
