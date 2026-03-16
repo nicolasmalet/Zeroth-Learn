@@ -1,11 +1,12 @@
-from dataclasses import dataclass
 from abc import abstractmethod
+from dataclasses import dataclass
+
 import numpy as np
 
-from .zeroth_order_blackbox import ZerothOrderBlackBox
 from .gradient_estimators import GradientEstimator
-from ..abstract.optimizer import Optimizer
+from .zeroth_order_blackbox import ZerothOrderBlackBox
 from ..abstract.loss import Loss
+from ..abstract.optimizer import Optimizer
 
 
 @dataclass(frozen=True)

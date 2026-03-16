@@ -1,12 +1,10 @@
 from dataclasses import dataclass
 
-
-from zeroth.utils.perturbation_matrices import rademacher_matrix
-from zeroth.abstract import LayerConfig, NeuralNetworkConfig
 import zeroth.utils.activation_functions as af
-from zeroth import zeroth_order as zeroth
 from zeroth import first_order as first
-
+from zeroth import zeroth_order as zeroth
+from zeroth.abstract import LayerConfig, NeuralNetworkConfig
+from zeroth.utils.perturbation_matrices import rademacher_matrix
 
 INPUT_DIM = 28 ** 2
 

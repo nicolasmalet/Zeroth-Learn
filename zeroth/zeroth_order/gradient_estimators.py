@@ -1,6 +1,7 @@
+from abc import ABC
 from dataclasses import dataclass
 from typing import Callable
-from abc import ABC
+
 import numpy as np
 
 

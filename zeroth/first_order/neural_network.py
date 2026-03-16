@@ -1,7 +1,7 @@
 import numpy as np
 
-from ..abstract.blackbox import BlackBox, NeuralNetworkConfig
 from .layer import Layer
+from ..abstract.blackbox import BlackBox, NeuralNetworkConfig
 
 
 class FirstOrderNeuralNetwork(BlackBox):

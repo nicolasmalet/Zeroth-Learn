@@ -1,32 +1,74 @@
-from zeroth.experiment import ExperimentConfig, VariationConfig
-from zeroth.utils.dataclasses_utils import get_catalog_values
+from dataclasses import dataclass
 
+import zeroth.paths as paths
+from zeroth.experiment import ExperimentConfig
+from zeroth.experiment import VariationConfig
+from zeroth.utils.dataclasses_utils import get_catalog_values
 from .configs import NETWORKS, OPTIMIZERS
 from .data import create_data_mnist
 from .models import MODELS
 
-from dataclasses import dataclass
 
-
-@dataclass(frozen=True)
 class VariationCatalog:
-    all_sizes = VariationConfig(param="neural_network_config",
-                                values=get_catalog_values(NETWORKS))
+    all_sizes = VariationConfig(
+        name="Network size",
+        param=[paths.NN_CONFIG],
+        values=[[v] for v in get_catalog_values(NETWORKS)]
+    )
 
-    small_networks = VariationConfig(param="neural_network_config",
-                                     values=[NETWORKS.linear, NETWORKS.xs, NETWORKS.s])
-    learning_rates_adam = VariationConfig(param="learning_rate", values=[0.0001, 0.0005, 0.001, 0.005])
-    learning_rates_sgd = VariationConfig(param="learning_rate", values=[0.05, 0.1, 0.5, 1])
-    optimizers_backprop = VariationConfig(param="optimizer_config",
-                                          values=[OPTIMIZERS.first_order_adam,
-                                                  OPTIMIZERS.first_order_sgd])
-    optimizers_spsa = VariationConfig(param="optimizer_config",
-                                      values=[OPTIMIZERS.zeroth_order_adam,
-                                              OPTIMIZERS.zeroth_order_sgd])
-    nb_perturbations = VariationConfig(param="nb_perturbations", values=[10, 30, 100])
-    beta1 = VariationConfig(param="beta1", values=[0.9, 0.95, 0.99])
-    beta2 = VariationConfig(param="beta2", values=[0.95, 0.99, 0.999])
-    batch_sizes = VariationConfig(param="batch_size", values=[3, 10, 30])
+    small_networks = VariationConfig(
+        name="Network size",
+        param=[paths.NN_CONFIG],
+        values=[[NETWORKS.linear], [NETWORKS.xs], [NETWORKS.s]]
+    )
+
+    learning_rates_adam = VariationConfig(
+        name="Learning Rate",
+        param=[paths.LR],
+        values=[[0.0001], [0.0005], [0.001], [0.005]]
+    )
+
+    learning_rates_sgd = VariationConfig(
+        name="Learning Rate",
+        param=[paths.LR],
+        values=[[0.05], [0.1], [0.5], [1]]
+    )
+
+    optimizers_backprop = VariationConfig(
+        name="Optimizer",
+        param=[paths.OPTIMIZER_CONFIG],
+        values=[[OPTIMIZERS.first_order_adam], [OPTIMIZERS.first_order_sgd]]
+    )
+
+    optimizers_spsa = VariationConfig(
+        name="Optimizer",
+        param=[paths.OPTIMIZER_CONFIG],
+        values=[[OPTIMIZERS.zeroth_order_adam], [OPTIMIZERS.zeroth_order_sgd]]
+    )
+
+    nb_perturbations = VariationConfig(
+        name="nb_perturbations",
+        param=[paths.NB_PERTURBATIONS],
+        values=[[10], [30], [100]]
+    )
+
+    beta1 = VariationConfig(
+        name="Beta 1",
+        param=[paths.BETA1],
+        values=[[0.9], [0.95], [0.99]]
+    )
+
+    beta2 = VariationConfig(
+        name="Beta 2",
+        param=[paths.BETA2],
+        values=[[0.95], [0.99], [0.999]]
+    )
+
+    batch_sizes = VariationConfig(
+        name="Batch Size",
+        param=[paths.BATCH_SIZE],
+        values=[[3], [10], [30]]
+    )
 
 
 VARIATIONS = VariationCatalog()
@@ -87,7 +129,7 @@ class ExperimentCatalog:
                                                      plot_dimension=1)
 
     adam_vs_sgd: ExperimentConfig = ExperimentConfig(name="adam_vs_sgd",
-                                                     title="Adam vs GDP comparison",
+                                                     title="Adam vs SGD comparison",
                                                      base_model=MODELS.backprop_s_adam_5epochs,
                                                      variations=[VARIATIONS.optimizers_backprop,
                                                                  VARIATIONS.small_networks],

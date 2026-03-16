@@ -1,9 +1,8 @@
-from matplotlib.axes import Axes
-from cycler import cycler
-
 import matplotlib.pyplot as plt
-import pandas as pd
 import numpy as np
+import pandas as pd
+from cycler import cycler
+from matplotlib.axes import Axes
 
 
 def set_style() -> None:
@@ -132,7 +131,7 @@ def plot_1d(models: list, title: str, key: str, smooth_span: int = 50) -> None:
                    bbox_to_anchor=(0.5, 0), frameon=False, fontsize=9)
 
 
-def plot_2d_grid(models: list, title: str, row_key: str, col_key: str, smooth_span: int = 50) -> None:
+def plot_2d(models: list, title: str, row_key: str, col_key: str, smooth_span: int = 50) -> None:
     """
     Plots a grid of subplots varying two hyperparameters: one across rows, one across columns.
 
@@ -205,7 +204,7 @@ def plot_losses(dimension: int, models: list, title: str, save_path: str = None,
     elif dimension == 1:
         plot_1d(models, title, keys[0], smooth_span)
     else:
-        plot_2d_grid(models, title, keys[0], keys[1], smooth_span)
+        plot_2d(models, title, keys[0], keys[1], smooth_span)
 
     if save_path:
         plt.savefig(save_path, dpi=300, bbox_inches="tight")

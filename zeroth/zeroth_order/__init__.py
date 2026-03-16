@@ -1,5 +1,6 @@
-from .optimizers import ZerothOrderOptimizer, ZerothOrderOptimizerConfig, ZerothOrderSGDConfig, ZerothOrderAdamConfig
-from .gradient_estimators import GradientEstimator, GradientEstimatorConfig, FiniteDifferenceConfig, SimultaneousPerturbationConfig
+from .gradient_estimators import GradientEstimator, GradientEstimatorConfig, FiniteDifferenceConfig, \
+    SimultaneousPerturbationConfig
+from .model import ZerothOrderModel, ZerothOrderModelConfig
 from .neural_network.neural_network import ZerothOrderNeuralNetwork
 from .neural_network.parameter_manager import ParameterManager
-from .model import ZerothOrderModel, ZerothOrderModelConfig
+from .optimizers import ZerothOrderOptimizer, ZerothOrderOptimizerConfig, ZerothOrderSGDConfig, ZerothOrderAdamConfig

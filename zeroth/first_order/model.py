@@ -1,8 +1,8 @@
-from ..abstract import ModelConfig, Model, NeuralNetworkConfig
+from dataclasses import dataclass
+
 from .neural_network import FirstOrderNeuralNetwork
 from .optimizers import FirstOrderOptimizerConfig, FirstOrderOptimizer
-
-from dataclasses import dataclass
+from ..abstract import ModelConfig, Model, NeuralNetworkConfig
 
 
 @dataclass(frozen=True)

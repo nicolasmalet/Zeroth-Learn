@@ -4,12 +4,11 @@ from typing import Callable
 
 import numpy as np
 
-from ..plot_losses import plot_losses
-from ..data import Data
-from .optimizer import Optimizer
 from .blackbox import BlackBox
 from .loss import Loss
-
+from .optimizer import Optimizer
+from ..data import Data
+from ..plot_losses import plot_losses
 
 
 @dataclass(frozen=True)
@@ -85,8 +84,8 @@ class Model(ABC):
                           f"loss : {np.round(self.train_loss[epoch_idx * nb_batches + batch_idx], 3)}")
             self.test(data)
 
-    def plot_loss(self) -> None:
-        plot_losses(dimension=0, models=[self], title=self.name)
+    def plot_loss(self, save_path: str = None, smooth_span: int = 100) -> None:
+        plot_losses(dimension=0, models=[self], title=self.name, save_path=save_path, smooth_span=smooth_span)
 
 
     def test(self, data: Data) -> None:

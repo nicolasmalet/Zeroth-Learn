@@ -1,13 +1,13 @@
-from ..abstract.optimizer import Optimizer
-from ..abstract.loss import Loss
-from .neural_network import FirstOrderNeuralNetwork
-from .layer import Layer
-
-
+from abc import abstractmethod
 from collections import defaultdict
 from dataclasses import dataclass
-from abc import abstractmethod
+
 import numpy as np
+
+from .layer import Layer
+from .neural_network import FirstOrderNeuralNetwork
+from ..abstract.loss import Loss
+from ..abstract.optimizer import Optimizer
 
 
 @dataclass(frozen=True)

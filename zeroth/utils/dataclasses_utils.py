@@ -1,4 +1,4 @@
-from dataclasses import is_dataclass, fields, replace, asdict
+from dataclasses import is_dataclass, fields, asdict
 
 
 def get_name(value):
@@ -35,19 +35,25 @@ def get_catalog_values(catalog_instance):
     return [getattr(catalog_instance, f.name) for f in fields(catalog_instance)]
 
 
+from dataclasses import replace
+
+
 def set_value_by_path(obj, path: str, value):
+    parts = path.split(".", 1)
+    field = parts[0]
 
-    parts = path.split(".")
-    field_name = parts[0]
+    is_seq = field.isdigit() and isinstance(obj, (list, tuple))
 
-    if len(parts) == 1:
-        return replace(obj, **{field_name: value})
+    if len(parts) > 1:
+        child = obj[int(field)] if is_seq else getattr(obj, field)
+        value = set_value_by_path(child, parts[1], value)
 
-    current_child = getattr(obj, field_name)
+    if is_seq:
+        new_seq = list(obj)
+        new_seq[int(field)] = value
+        return type(obj)(new_seq)
 
-    new_child = set_value_by_path(current_child, ".".join(parts[1:]), value)
-
-    return replace(obj, **{field_name: new_child})
+    return replace(obj, **{field: value})
 
 
 def config_serializer(obj):

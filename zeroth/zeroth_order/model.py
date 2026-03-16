@@ -1,9 +1,9 @@
-from ..abstract import Model, ModelConfig, NeuralNetworkConfig
-from .gradient_estimators import GradientEstimatorConfig, GradientEstimator
-from .optimizers import ZerothOrderOptimizerConfig, ZerothOrderOptimizer
-from .neural_network.neural_network import ZerothOrderNeuralNetwork
-
 from dataclasses import dataclass
+
+from .gradient_estimators import GradientEstimatorConfig, GradientEstimator
+from .neural_network.neural_network import ZerothOrderNeuralNetwork
+from .optimizers import ZerothOrderOptimizerConfig, ZerothOrderOptimizer
+from ..abstract import Model, ModelConfig, NeuralNetworkConfig
 
 
 @dataclass(frozen=True)

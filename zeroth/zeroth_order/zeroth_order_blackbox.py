@@ -1,8 +1,10 @@
+from abc import abstractmethod
+
 import numpy as np
 
-from ..abstract.blackbox import BlackBox
 from .gradient_estimators import GradientEstimator
-from abc import abstractmethod
+from ..abstract.blackbox import BlackBox
+
 
 class ZerothOrderBlackBox(BlackBox):
 

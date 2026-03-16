@@ -1,11 +1,10 @@
-from zeroth.first_order import FirstOrderModelConfig
-from zeroth.zeroth_order import ZerothOrderModelConfig
-from zeroth.utils.metrics import accuracy
-import zeroth.losses as losses
-
-from .configs import NETWORKS, OPTIMIZERS, GRADIENT_ESTIMATORS
-
 from dataclasses import dataclass
+
+import zeroth.losses as losses
+from zeroth.first_order import FirstOrderModelConfig
+from zeroth.utils.metrics import accuracy
+from zeroth.zeroth_order import ZerothOrderModelConfig
+from .configs import NETWORKS, OPTIMIZERS, GRADIENT_ESTIMATORS
 
 DEFAULT_BATCH_SIZE = 50
 DEFAULT_NB_EPOCHS = 1

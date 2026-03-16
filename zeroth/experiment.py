@@ -1,23 +1,22 @@
-from .utils.dataclasses_utils import config_serializer, generate_param_map, get_name, set_value_by_path
-from .abstract import Model, ModelConfig
-from .plot_losses import plot_losses
-from .data import Data
-
-from dataclasses import dataclass, replace
-from typing import Callable
-
-import pandas as pd
 import itertools
 import json
 import os
+from dataclasses import dataclass, replace
+from typing import Callable, Union
 
+import pandas as pd
 
+from .abstract import Model, ModelConfig
+from .data import Data
+from .plot_losses import plot_losses
+from .utils.dataclasses_utils import config_serializer, get_name, set_value_by_path
 
 
 @dataclass(frozen=True)
 class VariationConfig:
-    param: str
-    values: list
+    name: str
+    param: list[str]
+    values: Union[list, list[list]]
 
 
 @dataclass(frozen=True)
@@ -110,23 +109,20 @@ class Experiment:
 
 
 def generate_models(base_model: ModelConfig, variations: list[VariationConfig]) -> list[Model]:
-
     models = []
 
-    names = [v.param for v in variations]
-    values = [v.values for v in variations]
+    values_lists = [v.values for v in variations]
 
-    # key: param  value: path
-    PARAM_MAP = generate_param_map(base_model)
-
-    for combination in itertools.product(*values):
+    for combination in itertools.product(*values_lists):
         id_ = {}
-        for key, val in zip(names, combination):
-            id_[key] = get_name(val)
         current_model = base_model
-        for param_key, value in zip(names, combination):
-            path = PARAM_MAP[param_key]
-            current_model = set_value_by_path(current_model, path, value)
+
+        for var_config, current_vals in zip(variations, combination):
+
+            id_[var_config.name] = get_name(current_vals[0])
+
+            for path, val in zip(var_config.param, current_vals):
+                current_model = set_value_by_path(current_model, path, val)
 
         current_model = replace(current_model, id=id_)
         models.append(current_model.instantiate())

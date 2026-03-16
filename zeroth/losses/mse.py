@@ -1,8 +1,7 @@
-from ..first_order.layer import Layer
-from ..abstract.loss import Loss
-
-
 import numpy as np
+
+from ..abstract.loss import Loss
+from ..first_order.layer import Layer
 
 
 class MSE(Loss):

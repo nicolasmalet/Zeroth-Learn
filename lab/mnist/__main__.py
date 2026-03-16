@@ -1,6 +1,5 @@
 from .main import main
 
-
 if __name__ == "__main__":
     main(do_train=True,
          do_test=True,

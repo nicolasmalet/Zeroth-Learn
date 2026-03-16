@@ -1,7 +1,8 @@
-from ...utils.activation_functions import relu
-
 from typing import Callable
+
 import numpy as np
+
+from ...utils.activation_functions import relu
 
 
 class ParameterManager:
