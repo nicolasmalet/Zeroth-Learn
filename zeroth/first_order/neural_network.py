@@ -22,18 +22,19 @@ class FirstOrderNeuralNetwork(BlackBox):
                                      layer_config.f))
             self.nb_layers += 1
 
-    def init_params(self, params: tuple):
-        Ws, Bs = params
+    def init_params(self, params: dict) -> None:
+        Ws = params["Ws"]
+        Bs = params["Bs"]
         for layer, W, B in zip(self.layers, Ws, Bs):
             layer.W = W
             layer.B = B
 
-    def get_params(self):
+    def get_params(self) -> dict:
         Ws, Bs = [], []
         for layer in self.layers:
             Ws.append(layer.W)
             Bs.append(layer.B)
-        return Ws, Bs
+        return {"Ws": Ws, "Bs": Bs}
 
     def print_params(self):
         Ws, Bs = self.get_params()

@@ -1,5 +1,4 @@
 import itertools
-import json
 import os
 from dataclasses import dataclass, replace
 from typing import Callable, Union
@@ -26,7 +25,8 @@ class ExperimentConfig:
     base_model: ModelConfig
     variations: list[VariationConfig]
     create_data: Callable
-    plot_dimension : int
+    plot_dimension: int
+    smooth_fraction: float
 
     def instantiate(self):
         return Experiment(self)
@@ -52,8 +52,9 @@ class Experiment:
         self.models: list[Model] = generate_models(config.base_model, config.variations)
         self.data: Data = config.create_data()
         self.plot_dimension: int = config.plot_dimension
+        self.smooth_fraction: float = config.smooth_fraction
 
-        self.save_dir = os.path.join("results", self.name)
+        self.save_dir = os.path.join("experiments", self.name)
 
     def launch(self, do_train, do_test, nb_print_train, do_plot_train, do_save):
         """
@@ -73,6 +74,7 @@ class Experiment:
             self.test()
         if do_save:
             self.save_df()
+            self.save_weights()
 
     def train(self, nb_print: int, do_plot: bool, do_save: bool):
         for model in self.models:
@@ -84,7 +86,7 @@ class Experiment:
                 os.makedirs(self.save_dir, exist_ok=True)
                 plot_path = os.path.join(self.save_dir, "training_losses.png")
 
-            plot_losses(dimension=self.plot_dimension, models=self.models, title=self.title, save_path=plot_path)
+            plot_losses(dimension=self.plot_dimension, models=self.models, title=self.title, smooth_fraction=self.smooth_fraction, save_path=plot_path)
 
     def test(self):
         for model in self.models:
@@ -103,9 +105,22 @@ class Experiment:
         df = pd.DataFrame(data)
         df.to_csv(os.path.join(self.save_dir, "models_accuracy.csv"), index_label="iteration")
 
-        config_path = os.path.join(self.save_dir, "config.json")
-        with open(config_path, "w") as f:
-            json.dump(self.config, f, default=config_serializer, indent=4)
+    def save_weights(self) -> None:
+        weights_dir = os.path.join(self.save_dir, "models")
+        os.makedirs(weights_dir, exist_ok=True)
+        print(f"    Saving weights to: {weights_dir}")
+
+        for i, model in enumerate(self.models):
+            model_dir = os.path.join(weights_dir, f"{model.get_folder_name()}")
+
+            weights_path = os.path.join(model_dir, "weights.pkl")
+            model.save_weights(weights_path)
+
+            config_path = os.path.join(model_dir, "config.json")
+            model.save_config(config_path)
+
+            loss_path = os.path.join(model_dir, "training_loss.csv")
+            model.save_loss(loss_path)
 
 
 def generate_models(base_model: ModelConfig, variations: list[VariationConfig]) -> list[Model]:

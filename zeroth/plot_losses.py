@@ -57,27 +57,33 @@ def format_ax(ax: Axes) -> None:
     ax.spines['right'].set_visible(False)
 
 
-def plot_loss(ax: Axes, train_loss: np.ndarray, label: str, smooth_span: int = 50) -> None:
-    ax.plot(train_loss, alpha=0.25, linewidth=1.0)
-    smooth = smooth_curve(train_loss, smooth_span)
-    ax.plot(smooth, label=label, linewidth=2.5)
+def plot_loss(ax: Axes, train_loss: np.ndarray, label: str, smooth_fraction: float = 0) -> None:
+    window_length = int(len(train_loss) * smooth_fraction)
+    if window_length > 1:
+        ax.plot(train_loss, alpha=0.25, linewidth=1.0)
+        smooth = smooth_curve(train_loss, window_length)
+        ax.plot(smooth, label=label, linewidth=2.5)
+    else:
+        ax.plot(train_loss, alpha=1, linewidth=2.5)
 
 
-def smooth_curve(loss: np.ndarray, smooth_span: int) -> np.ndarray:
-    return np.exp(pd.Series(np.log(loss)).ewm(span=smooth_span, adjust=True).mean())
 
+def smooth_curve(loss: np.ndarray, window_length: int) -> np.ndarray:
+    return np.exp(pd.Series(np.log(loss)).ewm(span=window_length, adjust=True).mean())
 
+#def smooth_curve(loss: np.ndarray, window_length: int, poly_order: int = 3) -> np.ndarray:
+#    return savgol_filter(loss, window_length=window_length, polyorder=poly_order)
 
-def plot_0d(models: list, title: str, smooth_span: int = 50) -> None:
+def plot_0d(models: list, title: str, smooth_fraction: float = 50) -> None:
     """
     Plots a single graph overlaying multiple models that share the same hyperparameters.
     """
     fig, ax = plt.subplots(figsize=(5.5, 3.5))
 
     for model in models:
-        others = [f"{k}={v}" for k, v in model.id.items()]
+        others = [f"{k} = {v}" for k, v in model.id.items()]
         label = ", ".join(others)
-        plot_loss(ax, model.train_loss, label, smooth_span)
+        plot_loss(ax, model.training_loss, label, smooth_fraction)
 
         format_ax(ax)
 
@@ -94,7 +100,7 @@ def plot_0d(models: list, title: str, smooth_span: int = 50) -> None:
                    bbox_to_anchor=(0.5, 0), frameon=False, fontsize=9)
 
 
-def plot_1d(models: list, title: str, key: str, smooth_span: int = 50) -> None:
+def plot_1d(models: list, title: str, key: str, smooth_fraction: float = 50) -> None:
     """
     Plots a row of subplots, varying one hyperparameter (key) across columns.
     """
@@ -108,10 +114,10 @@ def plot_1d(models: list, title: str, key: str, smooth_span: int = 50) -> None:
         cell_models = [m for m in models if m.id[key] == val]
 
         for model in cell_models:
-            others = [f"{k}={v}" for k, v in model.id.items()
+            others = [f"{k} = {v}" for k, v in model.id.items()
                       if k != key]
             label = ", ".join(others)
-            plot_loss(ax, model.train_loss, label, smooth_span)
+            plot_loss(ax, model.training_loss, label, smooth_fraction)
 
         format_ax(ax)
 
@@ -131,7 +137,7 @@ def plot_1d(models: list, title: str, key: str, smooth_span: int = 50) -> None:
                    bbox_to_anchor=(0.5, 0), frameon=False, fontsize=9)
 
 
-def plot_2d(models: list, title: str, row_key: str, col_key: str, smooth_span: int = 50) -> None:
+def plot_2d(models: list, title: str, row_key: str, col_key: str, smooth_fraction: float) -> None:
     """
     Plots a grid of subplots varying two hyperparameters: one across rows, one across columns.
 
@@ -140,7 +146,7 @@ def plot_2d(models: list, title: str, row_key: str, col_key: str, smooth_span: i
         title (str): The title of the plot.
         row_key (str): The hyperparameter key changing across rows.
         col_key (str): The hyperparameter key changing across columns.
-        smooth_span (int): The span for the EWM average.
+        smooth_fraction (int)
     """
     rows = list(dict.fromkeys([m.id[row_key] for m in models]))
     cols = list(dict.fromkeys([m.id[col_key] for m in models]))
@@ -155,9 +161,9 @@ def plot_2d(models: list, title: str, row_key: str, col_key: str, smooth_span: i
             cell_models = [m for m in models if m.id[row_key] == r_val and m.id[col_key] == c_val]
 
             for model in cell_models:
-                others = [f"{k}={v}" for k, v in model.id.items() if k not in [row_key, col_key]]
+                others = [f"{k} = {v}" for k, v in model.id.items() if k not in [row_key, col_key]]
                 label = ", ".join(others)
-                plot_loss(ax, model.train_loss, label, smooth_span)
+                plot_loss(ax, model.training_loss, label, smooth_fraction)
 
             format_ax(ax)
 
@@ -183,7 +189,7 @@ def plot_2d(models: list, title: str, row_key: str, col_key: str, smooth_span: i
 
 
 
-def plot_losses(dimension: int, models: list, title: str, save_path: str = None, smooth_span: int = 100) -> None:
+def plot_losses(dimension: int, models: list, title: str, smooth_fraction: float, save_path: str = None) -> None:
     """
     Main entry point for plotting. Automatically detects if the plot should be 0D, 1D, or 2D
     based on the number of variation parameters.
@@ -193,18 +199,18 @@ def plot_losses(dimension: int, models: list, title: str, save_path: str = None,
         models (list): List of model objects.
         title (str): The title of the plot.
         save_path (str, optional): File path to save the figure (e.g., 'plot.png').
-        smooth_span (int): EWM span for smoothing. Defaults to 50.
+        smooth_fraction (int): span for smoothing.
     """
     set_style()
 
     keys = list(models[0].id.keys())
 
     if dimension == 0:
-        plot_0d(models, title, smooth_span)
+        plot_0d(models, title, smooth_fraction)
     elif dimension == 1:
-        plot_1d(models, title, keys[0], smooth_span)
+        plot_1d(models, title, keys[0], smooth_fraction)
     else:
-        plot_2d(models, title, keys[0], keys[1], smooth_span)
+        plot_2d(models, title, keys[0], keys[1], smooth_fraction)
 
     if save_path:
         plt.savefig(save_path, dpi=300, bbox_inches="tight")

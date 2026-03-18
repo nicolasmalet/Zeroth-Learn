@@ -2,13 +2,18 @@ from abc import ABC
 from dataclasses import dataclass
 from typing import Callable
 
+import pandas as pd
 import numpy as np
+import pickle
+import json
+import os
 
 from .blackbox import BlackBox
 from .loss import Loss
 from .optimizer import Optimizer
 from ..data import Data
 from ..plot_losses import plot_losses
+from ..utils.dataclasses_utils import config_serializer
 
 
 @dataclass(frozen=True)
@@ -40,6 +45,7 @@ class Model(ABC):
     """
 
     def __init__(self, config: ModelConfig):
+        self.config = config
 
         self.name: str = config.name
         self.id: dict = config.id
@@ -50,7 +56,7 @@ class Model(ABC):
         self.neural_network: BlackBox | None = None
         self.optimizer: Optimizer | None = None
 
-        self.train_loss: np.ndarray = np.array([])
+        self.training_loss: np.ndarray = np.array([])
         self.test_loss: float | None = None
         self.test_accuracy: float | None = None
 
@@ -67,7 +73,7 @@ class Model(ABC):
 
         nb_batches = data.nb_data // self.batch_size
 
-        self.train_loss = np.zeros(self.nb_epochs * nb_batches, dtype=np.float64)
+        self.training_loss = np.zeros(self.nb_epochs * nb_batches, dtype=np.float64)
 
         print_indexes = np.linspace(0, nb_batches - 1, nb_print).astype(int)
         print(f"    Training {self.id} Model")
@@ -77,14 +83,14 @@ class Model(ABC):
             for batch_idx in range(nb_batches):
                 X_train, Y_train = data.X_train[batch_idx], data.Y_train[batch_idx]
                 avg_loss = self.optimizer.do_descent(self.neural_network, self.loss, X_train, Y_train)
-                self.train_loss[epoch_idx * nb_batches + batch_idx] = avg_loss
+                self.training_loss[epoch_idx * nb_batches + batch_idx] = avg_loss
 
                 if batch_idx in print_indexes:
                     print(f"            batch n°{batch_idx + 1} out of {nb_batches}, "
-                          f"loss : {np.round(self.train_loss[epoch_idx * nb_batches + batch_idx], 3)}")
+                          f"loss : {np.round(self.training_loss[epoch_idx * nb_batches + batch_idx], 3)}")
             self.test(data)
 
-    def plot_loss(self, save_path: str = None, smooth_span: int = 100) -> None:
+    def plot_loss(self, save_path: str = None, smooth_span: int = 0) -> None:
         plot_losses(dimension=0, models=[self], title=self.name, save_path=save_path, smooth_span=smooth_span)
 
 
@@ -96,3 +102,40 @@ class Model(ABC):
         self.test_loss = self.loss.compute_loss(Y_pred, Y_true)
 
         print(f"    {self.id} accuracy : {self.test_accuracy}, loss : {self.test_loss}")
+
+
+    def save_weights(self, save_path: str) -> None:
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        params_dict = self.neural_network.get_params()
+        with open(save_path, 'wb') as f:
+            pickle.dump(params_dict, f)
+
+    def save_config(self, save_path: str) -> None:
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        with open(save_path, "w") as f:
+            json.dump(self.config, f, default=config_serializer, indent=4)
+
+    def save_loss(self, save_path: str) -> None:
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        df = pd.DataFrame({
+            'training_loss': self.training_loss
+        })
+        df.to_csv(save_path)
+
+    def load_weights(self, load_path: str) -> None:
+        """Restaure les paramètres depuis un fichier pickle."""
+        with open(load_path, 'rb') as f:
+            params_dict = pickle.load(f)
+
+        self.neural_network.init_params(params_dict)
+
+    def get_folder_name(self) -> str:
+        parts = []
+        for key, value in self.id.items():
+            clean_key = str(key).replace(" ", "_").lower()
+            clean_val = str(value).replace(" ", "_").lower()
+            parts.append(f"{clean_key}-{clean_val}")
+
+        folder_name = "_".join(parts)
+
+        return folder_name

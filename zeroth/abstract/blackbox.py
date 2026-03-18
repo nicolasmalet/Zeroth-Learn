@@ -27,7 +27,7 @@ class BlackBox(ABC):
     """
 
     @abstractmethod
-    def init_params(self, params) -> None:
+    def init_params(self, params: dict) -> None:
         """Manually initializes the weights and biases of the network.
 
         Args:
@@ -36,11 +36,11 @@ class BlackBox(ABC):
         pass
 
     @abstractmethod
-    def get_params(self):
+    def get_params(self) -> dict:
         """Retrieves the current parameters of the network.
 
         Returns:
-            Tuple: (eg: List of Weight matrices, List of Bias vectors).
+            dict: (eg: List of Weight matrices, List of Bias vectors).
         """
         pass
 
