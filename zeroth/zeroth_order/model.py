@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 
 from .gradient_estimators import GradientEstimatorConfig, GradientEstimator
@@ -12,12 +14,12 @@ class ZerothOrderModelConfig(ModelConfig):
     optimizer_config: ZerothOrderOptimizerConfig
     gradient_estimator_config: GradientEstimatorConfig
 
-    def instantiate(self):
+    def instantiate(self) -> ZerothOrderModel:
         return ZerothOrderModel(self)
 
 
 class ZerothOrderModel(Model):
-    def __init__(self, config: ZerothOrderModelConfig):
+    def __init__(self, config: ZerothOrderModelConfig) -> None:
         super().__init__(config)
 
         self.neural_network: ZerothOrderNeuralNetwork = ZerothOrderNeuralNetwork(config.neural_network_config)

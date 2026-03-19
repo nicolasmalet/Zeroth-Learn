@@ -1,12 +1,14 @@
+from __future__ import annotations
+
+import json
+import os
+import pickle
 from abc import ABC
 from dataclasses import dataclass
 from typing import Callable
 
-import pandas as pd
 import numpy as np
-import pickle
-import json
-import os
+import pandas as pd
 
 from .blackbox import BlackBox
 from .loss import Loss
@@ -33,8 +35,9 @@ class ModelConfig:
     batch_size: int
     nb_epochs: int
 
-    def instantiate(self):
+    def instantiate(self) -> Model:
         pass
+
 
 class Model(ABC):
     """
@@ -90,9 +93,8 @@ class Model(ABC):
                           f"loss : {np.round(self.training_loss[epoch_idx * nb_batches + batch_idx], 3)}")
             self.test(data)
 
-    def plot_loss(self, save_path: str = None, smooth_span: int = 0) -> None:
-        plot_losses(dimension=0, models=[self], title=self.name, save_path=save_path, smooth_span=smooth_span)
-
+    def plot_loss(self, save_path: str = None, smooth_fraction: float = 0) -> None:
+        plot_losses(dimension=0, models=[self], title=self.name, save_path=save_path, smooth_fraction=smooth_fraction)
 
     def test(self, data: Data) -> None:
         X_test, Y_true = data.X_test, data.Y_test  # (in, batch), (out, batch)
@@ -102,7 +104,6 @@ class Model(ABC):
         self.test_loss = self.loss.compute_loss(Y_pred, Y_true)
 
         print(f"    {self.id} accuracy : {self.test_accuracy}, loss : {self.test_loss}")
-
 
     def save_weights(self, save_path: str) -> None:
         os.makedirs(os.path.dirname(save_path), exist_ok=True)

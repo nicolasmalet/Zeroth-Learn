@@ -12,9 +12,12 @@ class ZerothOrderNeuralNetwork(ZerothOrderBlackBox):
     Attributes:
         params (ParameterManager): Handler for flattening/reshaping weights (Theta <-> Ws/Bs).
     """
-    def __init__(self, config: NeuralNetworkConfig):
+
+    def __init__(self, config: NeuralNetworkConfig) -> None:
         self.name: str = config.name
         self.params: ParameterManager = ParameterManager()
+        self.input_dim: int = config.layers_config[0].input_dim
+        self.output_dim: int = config.layers_config[-1].output_dim
         for layer_config in config.layers_config:
             self.params.push_layer(layer_config.output_dim,
                                    layer_config.input_dim,
@@ -27,10 +30,6 @@ class ZerothOrderNeuralNetwork(ZerothOrderBlackBox):
 
     def get_params(self) -> dict:
         return {"Ws": self.params.Ws, "Bs": self.params.Bs}
-
-    def print_params(self, cutoff: int = 10) -> None:
-        print(f"Ws : {self.params.Ws[:][:cutoff]})")
-        print(f"Bs : {self.params.Bs[:][:cutoff]}")
 
     def forward(self, X: np.ndarray) -> np.ndarray:
         """Standard forward pass using the current nominal weights.
@@ -72,6 +71,3 @@ class ZerothOrderNeuralNetwork(ZerothOrderBlackBox):
         """Updates the flat parameter vector Theta and synchronizes Ws/Bs matrices."""
         self.params.Theta = self.params.Theta - learning_rate * grad
         self.params.update_weights_and_biases()
-
-    def show_weights(self) -> str:
-        return f"Ws, {self.params.Ws}, Bs {self.params.Bs}"

@@ -5,8 +5,6 @@ from ..first_order.layer import Layer
 
 
 class MSE(Loss):
-    name = "MSE"
-
     @staticmethod
     def compute_loss(Y_pred: np.ndarray, Y_true: np.ndarray) -> float:
         return np.mean((Y_pred - Y_true) ** 2, axis=(0, 1))

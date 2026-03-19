@@ -6,7 +6,8 @@ class Data:
     Manages dataset loading, shuffling, and batching.
     """
 
-    def __init__(self, raw_X_train: np.ndarray, raw_Y_train: np.ndarray, raw_X_test: np.ndarray, raw_Y_test: np.ndarray):
+    def __init__(self, raw_X_train: np.ndarray, raw_Y_train: np.ndarray, raw_X_test: np.ndarray,
+                 raw_Y_test: np.ndarray):
         self.input_dim: int = raw_X_train.shape[0]
         self.output_dim: int = raw_Y_train.shape[0]
         self.nb_data: int = raw_X_train.shape[1]

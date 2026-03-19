@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 
 from .neural_network import FirstOrderNeuralNetwork
@@ -10,12 +12,12 @@ class FirstOrderModelConfig(ModelConfig):
     neural_network_config: NeuralNetworkConfig
     optimizer_config: FirstOrderOptimizerConfig
 
-    def instantiate(self):
+    def instantiate(self) -> FirstOrderModel:
         return FirstOrderModel(self)
 
 
 class FirstOrderModel(Model):
-    def __init__(self, config: FirstOrderModelConfig):
+    def __init__(self, config: FirstOrderModelConfig) -> None:
         super().__init__(config)
 
         self.neural_network: FirstOrderNeuralNetwork = FirstOrderNeuralNetwork(config.neural_network_config)

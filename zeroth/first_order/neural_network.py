@@ -12,10 +12,12 @@ class FirstOrderNeuralNetwork(BlackBox):
         nb_layers (int): Number of layers.
     """
 
-    def __init__(self, config: NeuralNetworkConfig):
-        self.name = config.name
-        self.layers = []
-        self.nb_layers = 0
+    def __init__(self, config: NeuralNetworkConfig) -> None:
+        self.name: str = config.name
+        self.layers: list[Layer] = []
+        self.nb_layers: int = 0
+        self.input_dim: int = config.layers_config[0].input_dim
+        self.output_dim: int = config.layers_config[-1].output_dim
         for layer_config in config.layers_config:
             self.layers.append(Layer(layer_config.output_dim,
                                      layer_config.input_dim,
@@ -36,11 +38,6 @@ class FirstOrderNeuralNetwork(BlackBox):
             Bs.append(layer.B)
         return {"Ws": Ws, "Bs": Bs}
 
-    def print_params(self):
-        Ws, Bs = self.get_params()
-        print(f"Ws : {Ws[:][:10]})")
-        print(f"Bs : {Bs[:][:10]}")
-
     def forward(self, X: np.ndarray) -> np.ndarray:
         """Sequentially passes the input through all layers.
 
@@ -51,7 +48,3 @@ class FirstOrderNeuralNetwork(BlackBox):
         for layer in self.layers:
             X = layer.forward(X)
         return X
-
-    def show_weights(self):
-        Ws, Bs = self.get_params()
-        return f"Ws, {Ws}, Bs {Bs}"

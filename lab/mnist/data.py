@@ -4,7 +4,7 @@ from sklearn.datasets import fetch_openml
 from zeroth.data import Data
 
 
-def create_data_mnist():
+def create_data_mnist() -> Data:
     mnist = fetch_openml('mnist_784', version=1)
 
     # Load data

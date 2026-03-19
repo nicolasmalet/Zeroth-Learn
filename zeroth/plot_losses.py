@@ -1,8 +1,15 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from cycler import cycler
 from matplotlib.axes import Axes
+
+if TYPE_CHECKING:
+    from .abstract.model import Model
 
 
 def set_style() -> None:
@@ -67,14 +74,11 @@ def plot_loss(ax: Axes, train_loss: np.ndarray, label: str, smooth_fraction: flo
         ax.plot(train_loss, alpha=1, linewidth=2.5)
 
 
-
 def smooth_curve(loss: np.ndarray, window_length: int) -> np.ndarray:
     return np.exp(pd.Series(np.log(loss)).ewm(span=window_length, adjust=True).mean())
 
-#def smooth_curve(loss: np.ndarray, window_length: int, poly_order: int = 3) -> np.ndarray:
-#    return savgol_filter(loss, window_length=window_length, polyorder=poly_order)
 
-def plot_0d(models: list, title: str, smooth_fraction: float = 50) -> None:
+def plot_0d(models: list[Model], title: str, smooth_fraction: float = 50) -> None:
     """
     Plots a single graph overlaying multiple models that share the same hyperparameters.
     """
@@ -100,7 +104,7 @@ def plot_0d(models: list, title: str, smooth_fraction: float = 50) -> None:
                    bbox_to_anchor=(0.5, 0), frameon=False, fontsize=9)
 
 
-def plot_1d(models: list, title: str, key: str, smooth_fraction: float = 50) -> None:
+def plot_1d(models: list[Model], title: str, key: str, smooth_fraction: float = 50) -> None:
     """
     Plots a row of subplots, varying one hyperparameter (key) across columns.
     """
@@ -123,7 +127,6 @@ def plot_1d(models: list, title: str, key: str, smooth_fraction: float = 50) -> 
 
         ax.set_title(f"{key} = {val}")
 
-
     fig.text(0.5, 0.1, "Training steps", ha='center', fontsize=10)
     fig.text(0.01, 0.5, "Training loss", va='center', rotation='vertical', fontsize=10)
 
@@ -137,7 +140,7 @@ def plot_1d(models: list, title: str, key: str, smooth_fraction: float = 50) -> 
                    bbox_to_anchor=(0.5, 0), frameon=False, fontsize=9)
 
 
-def plot_2d(models: list, title: str, row_key: str, col_key: str, smooth_fraction: float) -> None:
+def plot_2d(models: list[Model], title: str, row_key: str, col_key: str, smooth_fraction: float) -> None:
     """
     Plots a grid of subplots varying two hyperparameters: one across rows, one across columns.
 
@@ -167,7 +170,6 @@ def plot_2d(models: list, title: str, row_key: str, col_key: str, smooth_fractio
 
             format_ax(ax)
 
-
             if i == 0:
                 ax.set_title(f"{col_key} = {c_val}")
 
@@ -188,8 +190,7 @@ def plot_2d(models: list, title: str, row_key: str, col_key: str, smooth_fractio
     fig.text(0.02, 0.5, "Training loss", va='center', rotation='vertical', fontsize=10)
 
 
-
-def plot_losses(dimension: int, models: list, title: str, smooth_fraction: float, save_path: str = None) -> None:
+def plot_losses(dimension: int, models: list[Model], title: str, smooth_fraction: float, save_path: str = None) -> None:
     """
     Main entry point for plotting. Automatically detects if the plot should be 0D, 1D, or 2D
     based on the number of variation parameters.

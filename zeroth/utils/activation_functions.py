@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def relu(x:np.ndarray) -> np.ndarray:
+def relu(x: np.ndarray) -> np.ndarray:
     return np.maximum(x, 0)
 
 
@@ -30,7 +30,7 @@ def sigmoid_derivative(x: np.ndarray) -> np.ndarray:
     return s * (1 - s)
 
 
-def identity(x:np.ndarray) -> np.ndarray:
+def identity(x: np.ndarray) -> np.ndarray:
     return x
 
 

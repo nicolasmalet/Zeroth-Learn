@@ -1,13 +1,14 @@
-from dataclasses import is_dataclass, fields, asdict
+from dataclasses import is_dataclass, fields, asdict, replace
+from typing import Any
 
 
-def get_name(value):
-    if hasattr(value, "name"):
-        return value.name
-    return value
+def get_name(obj: Any) -> Any:
+    if hasattr(obj, "name"):
+        return obj.name
+    return obj
 
 
-def generate_param_map(config_instance, prefix="", param_map=None) -> dict:
+def generate_param_map(config_instance: Any, prefix: str = "", param_map: dict = None) -> dict:
     if param_map is None:
         param_map = {}
 
@@ -31,14 +32,11 @@ def generate_param_map(config_instance, prefix="", param_map=None) -> dict:
     return param_map
 
 
-def get_catalog_values(catalog_instance):
+def get_catalog_values(catalog_instance: Any) -> list[Any]:
     return [getattr(catalog_instance, f.name) for f in fields(catalog_instance)]
 
 
-from dataclasses import replace
-
-
-def set_value_by_path(obj, path: str, value):
+def set_value_by_path(obj: Any, path: str, value: Any) -> Any:
     parts = path.split(".", 1)
     field = parts[0]
 
@@ -56,7 +54,7 @@ def set_value_by_path(obj, path: str, value):
     return replace(obj, **{field: value})
 
 
-def config_serializer(obj):
+def config_serializer(obj: Any):
     if is_dataclass(obj):
         return asdict(obj)
     if callable(obj):

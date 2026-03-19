@@ -73,32 +73,24 @@ class VariationCatalog:
 
 VARIATIONS = VariationCatalog()
 
-
 SMOOTH_FRACTION = 0.05
+
 
 #  WARNING: some VariationConfig might overwrite others depending on the order of variations
 @dataclass(frozen=True)
 class ExperimentCatalog:
     lr_vs_size_adam: ExperimentConfig = ExperimentConfig(name="lr_vs_size_adam",
                                                          title="Optimal Learning Rate across Model Depths with Adam",
-                                                         base_model=MODELS.backprop_xs_adam,
+                                                         base_model=MODELS.backprop_linear_adam,
                                                          variations=[VARIATIONS.small_networks,
                                                                      VARIATIONS.learning_rates_adam],
                                                          create_data=create_data_mnist,
                                                          plot_dimension=1,
                                                          smooth_fraction=SMOOTH_FRACTION)
 
-    finite_difference: ExperimentConfig = ExperimentConfig(name="finite_difference",
-                                                           title="test_finite_difference",
-                                                           base_model=MODELS.finite_difference_linear_adam,
-                                                           variations=[],
-                                                           create_data=create_data_mnist,
-                                                           plot_dimension=1,
-                                                           smooth_fraction=SMOOTH_FRACTION)
-
     lr_adam: ExperimentConfig = ExperimentConfig(name="lr_adam",
                                                  title="Optimal Learning Rate with Adam optimizer",
-                                                 base_model=MODELS.backprop_xs_adam,
+                                                 base_model=MODELS.backprop_linear_adam,
                                                  variations=[VARIATIONS.learning_rates_adam],
                                                  create_data=create_data_mnist,
                                                  plot_dimension=0,
@@ -112,14 +104,6 @@ class ExperimentCatalog:
                                                         create_data=create_data_mnist,
                                                         plot_dimension=2,
                                                         smooth_fraction=SMOOTH_FRACTION)
-
-    all_sizes: ExperimentConfig = ExperimentConfig(name="all_sizes",
-                                                   title="Effect of Network size",
-                                                   base_model=MODELS.backprop_s_adam_5epochs,
-                                                   variations=[VARIATIONS.all_sizes],
-                                                   create_data=create_data_mnist,
-                                                   plot_dimension=1,
-                                                   smooth_fraction=SMOOTH_FRACTION)
 
     small_sizes: ExperimentConfig = ExperimentConfig(name="small_sizes",
                                                      title="Effect of Network size on loss",
@@ -140,7 +124,7 @@ class ExperimentCatalog:
 
     adam_betas: ExperimentConfig = ExperimentConfig(name="adam_betas",
                                                     title="Adam Beta hyperparameters test",
-                                                    base_model=MODELS.multiplex_linear_adam,
+                                                    base_model=MODELS.backprop_linear_adam,
                                                     variations=[VARIATIONS.beta1,
                                                                 VARIATIONS.beta2],
                                                     create_data=create_data_mnist,

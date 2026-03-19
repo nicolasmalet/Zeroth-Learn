@@ -19,7 +19,7 @@ class ParameterManager:
             Theta (np.ndarray): The flattened parameter vector containing all Ws and Bs.
         """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.Ws, self.Bs, self.fs = [], [], []
         self.W_shapes, self.B_shapes = [], []
         self.W_sizes, self.B_sizes = [], []

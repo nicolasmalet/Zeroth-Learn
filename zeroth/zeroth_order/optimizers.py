@@ -1,4 +1,6 @@
-from abc import abstractmethod
+from __future__ import annotations
+
+from abc import abstractmethod, ABC
 from dataclasses import dataclass
 
 import numpy as np
@@ -10,42 +12,50 @@ from ..abstract.optimizer import Optimizer
 
 
 @dataclass(frozen=True)
-class ZerothOrderOptimizerConfig:
-    learning_rate: float
-
-    def instantiate(self, gradient_estimator: GradientEstimator):
+class ZerothOrderOptimizerConfig(ABC):
+    @abstractmethod
+    def instantiate(self, gradient_estimator: GradientEstimator) -> ZerothOrderOptimizer:
         pass
 
 
 @dataclass(frozen=True)
 class ZerothOrderSGDConfig(ZerothOrderOptimizerConfig):
     name = "SGD"
-    def instantiate(self, gradient_estimator: GradientEstimator):
+    learning_rate: float
+
+    def instantiate(self, gradient_estimator: GradientEstimator) -> ZerothOrderSGD:
         return ZerothOrderSGD(self, gradient_estimator)
 
 
 @dataclass(frozen=True)
-class ZerothOrderAdamConfig(ZerothOrderOptimizerConfig):
+class ZerothOrderAdamConfig(ZerothOrderSGDConfig):
     name = "Adam"
     beta1: float
     beta2: float
     epsilon: float
 
-    def instantiate(self, gradient_estimator: GradientEstimator):
+    def instantiate(self, gradient_estimator: GradientEstimator) -> ZerothOrderAdam:
         return ZerothOrderAdam(self, gradient_estimator)
 
 
 class ZerothOrderOptimizer(Optimizer):
+    @abstractmethod
+    def do_descent(self, blackbox: ZerothOrderBlackBox, loss: Loss, X: np.ndarray, Y_true: np.ndarray) -> float:
+        pass
+
+
+class ZerothOrderSGD(ZerothOrderOptimizer):
     """Abstract base class for optimizers using Stochastic Perturbation (zeroth_order).
 
     Instead of calculating gradients via first_order, these optimizers estimate
     the gradient by evaluating the loss on perturbed versions of the parameters.
     """
-    def __init__(self, gradient_estimator: GradientEstimator, learning_rate: float):
-        self.learning_rate = learning_rate
+
+    def __init__(self, config: ZerothOrderSGDConfig, gradient_estimator: GradientEstimator) -> None:
+        self.learning_rate = config.learning_rate
         self.gradient_estimator = gradient_estimator
 
-    def do_descent(self, blackbox: ZerothOrderBlackBox, loss: Loss, X: np.ndarray, Y_true: np.ndarray):
+    def do_descent(self, blackbox: ZerothOrderBlackBox, loss: Loss, X: np.ndarray, Y_true: np.ndarray) -> float:
         """Performs one optimization step using zeroth_order.
 
         1. Computes nominal prediction Y_pred.
@@ -62,7 +72,8 @@ class ZerothOrderOptimizer(Optimizer):
 
         return avg_loss
 
-    def compute_gradient(self, blackbox: ZerothOrderBlackBox, loss: Loss, X: np.ndarray, Y_true: np.ndarray) -> tuple[float, np.ndarray]:
+    def compute_gradient(self, blackbox: ZerothOrderBlackBox, loss: Loss, X: np.ndarray, Y_true: np.ndarray) -> tuple[
+        float, np.ndarray]:
         pY_pred = blackbox.forward_perturbed(X, self.gradient_estimator)
         avg_loss, pLoss = loss.compute_losses_for_zeroth_order(pY_pred, Y_true)
         gradient = self.gradient_estimator.get_gradient(pLoss)
@@ -72,27 +83,20 @@ class ZerothOrderOptimizer(Optimizer):
         final_gradient = self.apply_update_rule(gradient)
         blackbox.update_params(final_gradient, self.learning_rate)
 
-    @abstractmethod
-    def apply_update_rule(self, grad: np.ndarray) -> np.ndarray:
-        pass
-
-
-class ZerothOrderSGD(ZerothOrderOptimizer):
-    def __init__(self, config: ZerothOrderSGDConfig, gradient_estimator: GradientEstimator):
-        super().__init__(gradient_estimator, config.learning_rate)
-
     def apply_update_rule(self, grad: np.ndarray) -> np.ndarray:
         return grad
 
 
-class ZerothOrderAdam(ZerothOrderOptimizer):
+class ZerothOrderAdam(ZerothOrderSGD):
+    name = "Adam"
     """Adaptive Moment Estimation (Adam) adapted for zeroth_order gradient estimates.
 
     Note:
         Since zeroth_order gradients are noisy approximations, Adam is often very effective
         as its momentum terms (m, v) help smooth out the noise over time.
     """
-    def __init__(self, config: ZerothOrderAdamConfig, gradient_estimator: GradientEstimator):
+
+    def __init__(self, config: ZerothOrderAdamConfig, gradient_estimator: GradientEstimator) -> None:
         self.beta1: float = config.beta1
         self.beta2: float = config.beta2
         self.epsilon: float = config.epsilon
@@ -101,7 +105,7 @@ class ZerothOrderAdam(ZerothOrderOptimizer):
         self.m: np.ndarray = np.array([0])
         self.v: np.ndarray = np.array([0])
 
-        super().__init__(gradient_estimator, config.learning_rate)
+        super().__init__(config, gradient_estimator)
 
     def apply_update_rule(self, grad: np.ndarray) -> np.ndarray:
         self.m = self.beta1 * self.m + (1 - self.beta1) * grad

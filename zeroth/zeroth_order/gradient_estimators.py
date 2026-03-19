@@ -1,4 +1,6 @@
-from abc import ABC
+from __future__ import annotations
+
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Callable
 
@@ -7,33 +9,37 @@ import numpy as np
 
 @dataclass(frozen=True)
 class GradientEstimatorConfig:
-    dA: float
-    def instantiate(self, nb_params: int):
+    def instantiate(self, nb_params: int) -> GradientEstimator:
         pass
 
 
 @dataclass(frozen=True)
+class NullGradientEstimatorConfig(GradientEstimatorConfig):
+    def instantiate(self, nb_params: int) -> NullGradientEstimator:
+        return NullGradientEstimator(nb_params=nb_params)
+
+
+@dataclass(frozen=True)
 class FiniteDifferenceConfig(GradientEstimatorConfig):
-    def instantiate(self, nb_params):
+    dA: float
+
+    def instantiate(self, nb_params) -> FiniteDifference:
         return FiniteDifference(self, nb_params)
 
 
 @dataclass(frozen=True)
 class SimultaneousPerturbationConfig(GradientEstimatorConfig):
+    dA: float
     nb_perturbations: int
     get_perturbation_matrix: Callable
-    def instantiate(self, nb_params: int):
+
+    def instantiate(self, nb_params: int) -> SimultaneousPerturbation:
         return SimultaneousPerturbation(self, nb_params)
 
 
 class GradientEstimator(ABC):
-    def __init__(self, nb_params, dA):
-
-        self.nb_params: int = nb_params
-        self.dA: float = dA
-        self.Ps: np.ndarray = np.ndarray([])
-
-    def perturb(self, Theta: np.ndarray):
+    @abstractmethod
+    def perturb(self, Theta: np.ndarray) -> np.ndarray:
         """Applies the perturbation to the parameter vector Theta.
 
         Args:
@@ -43,8 +49,9 @@ class GradientEstimator(ABC):
             np.ndarray: Perturbed parameters pThetas. Shape (T, nb_params).
                         T is the number of perturbations (batch of models).
         """
-        return Theta + self.Ps
+        pass
 
+    @abstractmethod
     def get_gradient(self, p_Loss: np.ndarray) -> np.ndarray:
         """Estimates the gradient using the perturbation method.
 
@@ -55,37 +62,51 @@ class GradientEstimator(ABC):
         Returns:
             np.ndarray: Estimated gradient vector. Shape (nb_params, ).
         """
+        pass
 
-        L_diff = p_Loss[1:] - p_Loss[0]
-        return self.Ps.T @ L_diff.mean(axis=1) / (self.dA**2)
+
+class NullGradientEstimator(GradientEstimator):
+    def __init__(self, nb_params: int) -> None:
+        self.nb_params: int = nb_params
+
+    def perturb(self, Theta: np.ndarray) -> np.ndarray:
+        return Theta[None, :]
+
+    def get_gradient(self, p_Loss: np.ndarray) -> np.ndarray:
+        return np.zeros(self.nb_params)
 
 
 class FiniteDifference(GradientEstimator):
-    def __init__(self, config: FiniteDifferenceConfig, nb_params: int):
-        super().__init__(nb_params, config.dA)
+    def __init__(self, config: FiniteDifferenceConfig, nb_params: int) -> None:
         self.nb_params: int = nb_params
+        self.dA: float = config.dA
 
-        # each parameter is perturbed one after another :
         self.perturbation_matrix: np.ndarray = np.vstack((np.zeros((1, self.nb_params)), np.eye(nb_params)))
         self.Ps: np.ndarray = config.dA * self.perturbation_matrix
 
-    def get_gradient(self, p_Loss: np.ndarray):
+    def perturb(self, Theta: np.ndarray) -> np.ndarray:
+        return Theta + self.Ps
+
+    def get_gradient(self, p_Loss: np.ndarray) -> np.ndarray:
         L_diff = p_Loss[1:] - p_Loss[0]
         return np.mean(L_diff, axis=1) / self.dA
 
 
 class SimultaneousPerturbation(GradientEstimator):
-    def __init__(self, config: SimultaneousPerturbationConfig, nb_params: int):
-        super().__init__(nb_params, config.dA)
+    def __init__(self, config: SimultaneousPerturbationConfig, nb_params: int) -> None:
+        self.nb_params: int = nb_params
+        self.dA: float = config.dA
         self.nb_perturbations: int = config.nb_perturbations
         self.get_perturbation_matrix: Callable = config.get_perturbation_matrix
 
         nb_copies = 3
-        self.Ps_extended = np.vstack((np.zeros((1, self.nb_params * nb_copies)), self.get_perturbation_matrix(self.nb_perturbations, self.nb_params * nb_copies)))
-        self.max_offset = self.Ps_extended.shape[1] - self.nb_params
+        self.Ps_extended: np.ndarray = np.vstack((np.zeros((1, self.nb_params * nb_copies)),
+                                                  self.get_perturbation_matrix(self.nb_perturbations,
+                                                                               self.nb_params * nb_copies)))
+        self.max_offset: int = self.Ps_extended.shape[1] - self.nb_params
 
-        self._perturbed_params = np.empty((self.nb_perturbations + 1, self.nb_params))
-        self.last_offset = 0
+        self._perturbed_params: np.ndarray = np.empty((self.nb_perturbations + 1, self.nb_params))
+        self.last_offset: int = 0
 
     def perturb(self, Theta: np.ndarray) -> np.ndarray:
         self.last_offset = np.random.randint(0, self.max_offset)

@@ -5,22 +5,20 @@ from ..first_order.layer import Layer
 
 
 class CrossEntropy(Loss):
-    name = "CrossEntropy"
-
     @staticmethod
     def compute_loss(Y_pred: np.ndarray, Y_true: np.ndarray) -> float:
         idx = np.arange(Y_pred.shape[1])
-        return - np.mean(np.log(1e-8 + Y_pred[Y_true, idx]))
+        return float(- np.mean(np.log(1e-15 + Y_pred[Y_true, idx])))
 
     @staticmethod
     def compute_batch_losses(Y_pred: np.ndarray, Y_true: np.ndarray) -> np.ndarray:
         idx = np.arange(Y_pred.shape[1])
-        return - np.log(1e-8 + Y_pred[Y_true, idx])
+        return - np.log(1e-15 + Y_pred[Y_true, idx])
 
     @staticmethod
     def compute_perturbed_losses(pY_pred: np.ndarray, Y_true: np.ndarray) -> np.ndarray:
         idx = np.arange(pY_pred.shape[2])
-        return - np.mean(np.log(1e-8 + pY_pred[:, Y_true, idx]), axis=1)
+        return - np.mean(np.log(1e-15 + pY_pred[:, Y_true, idx]), axis=1)
 
     @staticmethod
     def compute_gradient_wrt_preactivation(last_layer: Layer, Y_pred: np.ndarray, Y_true: np.ndarray) -> np.ndarray:
@@ -34,5 +32,6 @@ class CrossEntropy(Loss):
         p_loss = self.compute_perturbed_losses(pY_pred, Y_true)
         return avg_loss, p_loss
 
-    def compute_losses_for_first_order(self, last_layer, Y_pred: np.ndarray, Y_true: np.ndarray) -> tuple[float, np.ndarray]:
+    def compute_losses_for_first_order(self, last_layer, Y_pred: np.ndarray, Y_true: np.ndarray) -> tuple[
+        float, np.ndarray]:
         return self.compute_loss(Y_pred, Y_true), self.compute_gradient_wrt_preactivation(last_layer, Y_pred, Y_true)

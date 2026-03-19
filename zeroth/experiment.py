@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import itertools
 import os
 from dataclasses import dataclass, replace
@@ -8,7 +10,7 @@ import pandas as pd
 from .abstract import Model, ModelConfig
 from .data import Data
 from .plot_losses import plot_losses
-from .utils.dataclasses_utils import config_serializer, get_name, set_value_by_path
+from .utils.dataclasses_utils import get_name, set_value_by_path
 
 
 @dataclass(frozen=True)
@@ -28,7 +30,7 @@ class ExperimentConfig:
     plot_dimension: int
     smooth_fraction: float
 
-    def instantiate(self):
+    def instantiate(self) -> Experiment:
         return Experiment(self)
 
 
@@ -56,7 +58,7 @@ class Experiment:
 
         self.save_dir = os.path.join("experiments", self.name)
 
-    def launch(self, do_train, do_test, nb_print_train, do_plot_train, do_save):
+    def launch(self, do_train: bool, do_test: bool, nb_print_train: int, do_plot_train: bool, do_save: bool) -> None:
         """
         Executes the experiment pipeline.
 
@@ -86,13 +88,17 @@ class Experiment:
                 os.makedirs(self.save_dir, exist_ok=True)
                 plot_path = os.path.join(self.save_dir, "training_losses.png")
 
-            plot_losses(dimension=self.plot_dimension, models=self.models, title=self.title, smooth_fraction=self.smooth_fraction, save_path=plot_path)
+            plot_losses(dimension=self.plot_dimension,
+                        models=self.models,
+                        title=self.title,
+                        smooth_fraction=self.smooth_fraction,
+                        save_path=plot_path)
 
-    def test(self):
+    def test(self) -> None:
         for model in self.models:
             model.test(self.data)
 
-    def save_df(self):
+    def save_df(self) -> None:
         """
         saves the models parameters and their args
         """

@@ -1,3 +1,5 @@
+from typing import Callable
+
 import numpy as np
 
 from ..utils.activation_functions import get_df
@@ -14,7 +16,7 @@ class Layer:
         A (np.ndarray): Activated output. Shape (output_dim, batch_size).
     """
 
-    def __init__(self, output_dim, input_dim, f):
+    def __init__(self, output_dim: int, input_dim: int, f: Callable) -> None:
         """Initializes the layer with random weights and zeros biases.
 
         Args:
