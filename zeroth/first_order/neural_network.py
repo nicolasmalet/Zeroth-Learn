@@ -1,7 +1,7 @@
-import numpy as np
-
 from .layer import Layer
 from ..abstract.blackbox import BlackBox, NeuralNetworkConfig
+
+from ..types import Array
 
 
 class FirstOrderNeuralNetwork(BlackBox):
@@ -38,7 +38,7 @@ class FirstOrderNeuralNetwork(BlackBox):
             Bs.append(layer.B)
         return {"Ws": Ws, "Bs": Bs}
 
-    def forward(self, X: np.ndarray) -> np.ndarray:
+    def forward(self, X: Array) -> Array:
         """Sequentially passes the input through all layers.
 
         Note:

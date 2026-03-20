@@ -1,17 +1,16 @@
 from abc import abstractmethod
 
-import numpy as np
-
 from .gradient_estimators import GradientEstimator
 from ..abstract.blackbox import BlackBox
+from ..types import Array
 
 
 class ZerothOrderBlackBox(BlackBox):
 
     @abstractmethod
-    def forward_perturbed(self, X: np.ndarray, gradient_estimator: GradientEstimator) -> np.ndarray:
+    def forward_perturbed(self, X: Array, gradient_estimator: GradientEstimator) -> Array:
         pass
 
     @abstractmethod
-    def update_params(self, grad: np.ndarray, learning_rate: float) -> None:
+    def update_params(self, grad: Array, learning_rate: float) -> None:
         pass

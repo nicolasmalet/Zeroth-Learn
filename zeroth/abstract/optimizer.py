@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-import numpy as np
+from ..types import Array
 
 
 class Optimizer(ABC):
@@ -9,7 +9,7 @@ class Optimizer(ABC):
     """
 
     @abstractmethod
-    def do_descent(self, neural_network, loss, X: np.ndarray, Y_true: np.ndarray) -> float:
+    def do_descent(self, neural_network, loss, X: Array, Y_true: Array) -> float:
         """Performs a single optimization step.
 
         This includes:
@@ -20,7 +20,7 @@ class Optimizer(ABC):
         Args:
             neural_network (NeuralNetwork): The model to train.
             loss (Loss): The loss function object.
-            X (np.ndarray): The input data.
+            X (Array): The input data.
             Y_true (int): The true label.
 
         Returns:

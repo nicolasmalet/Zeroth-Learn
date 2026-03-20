@@ -1,19 +1,21 @@
 import numpy as np
 
+from ..types import Array
 
-def relu(x: np.ndarray) -> np.ndarray:
+
+def relu(x: float | Array) -> float | Array:
     return np.maximum(x, 0)
 
 
-def heaviside(x: np.ndarray) -> np.ndarray:
+def heaviside(x: float | Array) -> float | Array:
     return np.heaviside(x, 0).astype(int)
 
 
-def sigmoid(x: np.ndarray) -> np.ndarray:
+def sigmoid(x: float | Array) -> float | Array:
     return 1 / (1 + np.exp(-x))
 
 
-def softmax(x: np.ndarray) -> np.ndarray:
+def softmax(x: float | Array) -> float | Array:
     """
     Stabilization: We subtract the maximum to avoid overflow (inf)
     axis=-2 is important for handling:
@@ -25,12 +27,12 @@ def softmax(x: np.ndarray) -> np.ndarray:
     return e / np.sum(e, axis=-2, keepdims=True)
 
 
-def sigmoid_derivative(x: np.ndarray) -> np.ndarray:
+def sigmoid_derivative(x: float | Array) -> float | Array:
     s = sigmoid(x)
     return s * (1 - s)
 
 
-def identity(x: np.ndarray) -> np.ndarray:
+def identity(x: float | Array) -> float | Array:
     return x
 
 

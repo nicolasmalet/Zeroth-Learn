@@ -9,6 +9,7 @@ from .gradient_estimators import GradientEstimator
 from .zeroth_order_blackbox import ZerothOrderBlackBox
 from ..abstract.loss import Loss
 from ..abstract.optimizer import Optimizer
+from ..types import Array
 
 
 @dataclass(frozen=True)
@@ -40,15 +41,16 @@ class ZerothOrderAdamConfig(ZerothOrderSGDConfig):
 
 class ZerothOrderOptimizer(Optimizer):
     @abstractmethod
-    def do_descent(self, blackbox: ZerothOrderBlackBox, loss: Loss, X: np.ndarray, Y_true: np.ndarray) -> float:
+    def do_descent(self, blackbox: ZerothOrderBlackBox, loss: Loss, X: Array, Y_true: Array) -> float:
         pass
 
     @abstractmethod
-    def compute_gradient(self, blackbox: ZerothOrderBlackBox, loss: Loss, X: np.ndarray, Y_true: np.ndarray) -> tuple[float, np.ndarray]:
+    def compute_gradient(self, blackbox: ZerothOrderBlackBox, loss: Loss, X: Array, Y_true: Array) -> tuple[
+        float, Array]:
         pass
 
     @abstractmethod
-    def update_params(self, blackbox: ZerothOrderBlackBox, gradient: np.ndarray) -> None:
+    def update_params(self, blackbox: ZerothOrderBlackBox, gradient: Array) -> None:
         pass
 
 
@@ -63,7 +65,7 @@ class ZerothOrderSGD(ZerothOrderOptimizer):
         self.learning_rate = config.learning_rate
         self.gradient_estimator = gradient_estimator
 
-    def do_descent(self, blackbox: ZerothOrderBlackBox, loss: Loss, X: np.ndarray, Y_true: np.ndarray) -> float:
+    def do_descent(self, blackbox: ZerothOrderBlackBox, loss: Loss, X: Array, Y_true: Array) -> float:
         """Performs one optimization step using zeroth_order.
 
         1. Computes nominal prediction Y_pred.
@@ -80,18 +82,18 @@ class ZerothOrderSGD(ZerothOrderOptimizer):
 
         return avg_loss
 
-    def compute_gradient(self, blackbox: ZerothOrderBlackBox, loss: Loss, X: np.ndarray, Y_true: np.ndarray) -> tuple[
-        float, np.ndarray]:
+    def compute_gradient(self, blackbox: ZerothOrderBlackBox, loss: Loss, X: Array, Y_true: Array) -> tuple[
+        float, Array]:
         pY_pred = blackbox.forward_perturbed(X, self.gradient_estimator)
         avg_loss, pLoss = loss.compute_losses_for_zeroth_order(pY_pred, Y_true)
         gradient = self.gradient_estimator.get_gradient(pLoss)
         return avg_loss, gradient
 
-    def update_params(self, blackbox: ZerothOrderBlackBox, gradient: np.ndarray) -> None:
+    def update_params(self, blackbox: ZerothOrderBlackBox, gradient: Array) -> None:
         final_gradient = self._apply_update_rule(gradient)
         blackbox.update_params(final_gradient, self.learning_rate)
 
-    def _apply_update_rule(self, grad: np.ndarray) -> np.ndarray:
+    def _apply_update_rule(self, grad: Array) -> Array:
         return grad
 
 
@@ -110,12 +112,12 @@ class ZerothOrderAdam(ZerothOrderSGD):
         self.epsilon: float = config.epsilon
         self.beta1t: float = config.beta1
         self.beta2t: float = config.beta2
-        self.m: np.ndarray = np.array([0])
-        self.v: np.ndarray = np.array([0])
+        self.m: Array = np.array([0])
+        self.v: Array = np.array([0])
 
         super().__init__(config, gradient_estimator)
 
-    def _apply_update_rule(self, grad: np.ndarray) -> np.ndarray:
+    def _apply_update_rule(self, grad: Array) -> Array:
         self.m = self.beta1 * self.m + (1 - self.beta1) * grad
         self.v = self.beta2 * self.v + (1 - self.beta2) * (grad ** 2)
         m_hat = self.m / (1 - self.beta1t)

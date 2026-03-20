@@ -10,6 +10,7 @@ from .layer import Layer
 from .neural_network import FirstOrderNeuralNetwork
 from ..abstract.loss import Loss
 from ..abstract.optimizer import Optimizer
+from ..types import Array
 
 
 @dataclass(frozen=True)
@@ -40,7 +41,7 @@ class FirstOrderAdamConfig(FirstOrderSGDConfig):
 
 class FirstOrderOptimizer(Optimizer):
     @abstractmethod
-    def do_descent(self, neural_network, loss, X: np.ndarray, Y_true: np.ndarray) -> float:
+    def do_descent(self, neural_network, loss, X: Array, Y_true: Array) -> float:
         pass
 
 
@@ -50,8 +51,8 @@ class FirstOrderSGD(FirstOrderOptimizer):
     def __init__(self, config: FirstOrderSGDConfig) -> None:
         self.learning_rate: float = config.learning_rate
 
-    def do_descent(self, neural_network: FirstOrderNeuralNetwork, loss: Loss, X: np.ndarray,
-                   Y_true: np.ndarray) -> float:
+    def do_descent(self, neural_network: FirstOrderNeuralNetwork, loss: Loss, X: Array,
+                   Y_true: Array) -> float:
         """Performs a full forward and backward pass for a single batch.
 
         1. Computes the output (Forward).
@@ -62,8 +63,8 @@ class FirstOrderSGD(FirstOrderOptimizer):
         Args:
             neural_network (NeuralNetworkBackpropagation): The network to train.
             loss (Loss): The loss function to minimize.
-            X (np.ndarray): The input data.
-            Y_true (np.ndarray): The correct output.
+            X (Array): The input data.
+            Y_true (Array): The correct output.
 
         Returns:
             float: The average loss for the processed batch.
@@ -93,7 +94,7 @@ class FirstOrderSGD(FirstOrderOptimizer):
 
         return avg_loss
 
-    def _apply_update_rule(self, layer: Layer, dW: np.ndarray, dB: np.ndarray) -> tuple:
+    def _apply_update_rule(self, layer: Layer, dW: Array, dB: Array) -> tuple[Array, Array]:
         return dW, dB
 
 
@@ -113,16 +114,16 @@ class FirstOrderAdam(FirstOrderSGD):
 
         self.beta1t: float = 1
         self.beta2t: float = 1
-        self.m: dict[tuple[Layer, str], float | np.ndarray] = defaultdict(float)
-        self.v: dict[tuple[Layer, str], float | np.ndarray] = defaultdict(float)
+        self.m: dict[tuple[Layer, str], float | Array] = defaultdict(float)
+        self.v: dict[tuple[Layer, str], float | Array] = defaultdict(float)
 
-    def _apply_update_rule(self, layer: Layer, dW: np.ndarray, dB: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    def _apply_update_rule(self, layer: Layer, dW: Array, dB: Array) -> tuple[Array, Array]:
         """Computes the adaptive update step for a specific layer.
 
         Args:
             layer (Layer): The layer being updated (used as key for state dictionaries).
-            dW (np.ndarray): Gradient w.r.t weights.
-            dB (np.ndarray): Gradient w.r.t biases.
+            dW (Array): Gradient w.r.t weights.
+            dB (Array): Gradient w.r.t biases.
 
         Returns:
             tuple: The calculated updates (new_dW, new_dB) to be subtracted from params.
@@ -144,8 +145,8 @@ class FirstOrderAdam(FirstOrderSGD):
 
         return new_dW, new_dB
 
-    def do_descent(self, neural_network: FirstOrderNeuralNetwork, loss: Loss, X: np.ndarray,
-                   Y_true: np.ndarray) -> float:
+    def do_descent(self, neural_network: FirstOrderNeuralNetwork, loss: Loss, X: Array,
+                   Y_true: Array) -> float:
         self.beta1t *= self.beta1
         self.beta2t *= self.beta2
         return super().do_descent(neural_network, loss, X, Y_true)

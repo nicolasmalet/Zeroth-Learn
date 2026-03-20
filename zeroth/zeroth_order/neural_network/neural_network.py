@@ -1,9 +1,8 @@
-import numpy as np
-
 from .parameter_manager import ParameterManager
 from .. import GradientEstimator
 from ..zeroth_order_blackbox import ZerothOrderBlackBox
 from ...abstract.blackbox import NeuralNetworkConfig
+from ...types import Array
 
 
 class ZerothOrderNeuralNetwork(ZerothOrderBlackBox):
@@ -31,31 +30,31 @@ class ZerothOrderNeuralNetwork(ZerothOrderBlackBox):
     def get_params(self) -> dict:
         return {"Ws": self.params.Ws, "Bs": self.params.Bs}
 
-    def forward(self, X: np.ndarray) -> np.ndarray:
+    def forward(self, X: Array) -> Array:
         """Standard forward pass using the current nominal weights.
 
         Args:
-            X (np.ndarray): Input batch. Shape: (input_dim, batch_size).
+            X (Array): Input batch. Shape: (input_dim, batch_size).
 
         Returns:
-            np.ndarray: Output. Shape: (output_dim, batch_size).
+            Array: Output. Shape: (output_dim, batch_size).
         """
         for W, B, f in zip(self.params.Ws, self.params.Bs, self.params.fs):
             X = f(W @ X + B)
         return X
 
-    def forward_perturbed(self, X: np.ndarray, gradient_estimator: GradientEstimator) -> np.ndarray:
+    def forward_perturbed(self, X: Array, gradient_estimator: GradientEstimator) -> Array:
         """Parallel forward pass for multiple perturbed versions of the network.
 
         This method broadcasts the input X across T perturbed parameter sets
         to compute T outputs simultaneously without a Python loop.
 
         Args:
-            X (np.ndarray): Input batch. Shape: (input_dim, batch_size).
+            X (Array): Input batch. Shape: (input_dim, batch_size).
             gradient_estimator (GradientEstimator): The gradient_estimator object.
 
         Returns:
-            np.ndarray: Stacked outputs. Shape: (T, output_dim, batch_size)
+            Array: Stacked outputs. Shape: (T, output_dim, batch_size)
                         where T is the number of perturbations.
         """
         pThetas = gradient_estimator.perturb(self.params.Theta)  # Shape: (T, nb_params)
@@ -67,7 +66,7 @@ class ZerothOrderNeuralNetwork(ZerothOrderBlackBox):
 
         return X
 
-    def update_params(self, grad: np.ndarray, learning_rate: float) -> None:
+    def update_params(self, grad: Array, learning_rate: float) -> None:
         """Updates the flat parameter vector Theta and synchronizes Ws/Bs matrices."""
         self.params.Theta = self.params.Theta - learning_rate * grad
         self.params.update_weights_and_biases()

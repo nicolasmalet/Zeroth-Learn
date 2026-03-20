@@ -15,6 +15,7 @@ from .loss import Loss
 from .optimizer import Optimizer
 from ..data import Data
 from ..plot_losses import plot_losses
+from ..types import Array
 from ..utils.dataclasses_utils import config_serializer
 
 
@@ -59,7 +60,7 @@ class Model(ABC):
         self.neural_network: BlackBox | None = None
         self.optimizer: Optimizer | None = None
 
-        self.training_loss: np.ndarray = np.array([])
+        self.training_loss: Array = np.array([])
         self.test_loss: float | None = None
         self.test_accuracy: float | None = None
 
@@ -71,7 +72,7 @@ class Model(ABC):
             nb_print (int): Number of progress updates to print per epoch.
 
         Returns:
-            np.ndarray: Array of loss values recorded at each step (for plotting).
+            Array: Array of loss values recorded at each step (for plotting).
         """
 
         nb_batches = data.nb_data // self.batch_size

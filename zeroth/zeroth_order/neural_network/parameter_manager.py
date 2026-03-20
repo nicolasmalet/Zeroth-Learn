@@ -2,6 +2,7 @@ from typing import Callable
 
 import numpy as np
 
+from ...types import Array, ActivationFunction
 from ...utils.activation_functions import relu
 
 
@@ -14,17 +15,22 @@ class ParameterManager:
         - The flat vector (Theta) used for perturbation logic.
 
         Attributes:
-            Ws (list[np.ndarray]): List of weight matrices for each layer.
-            Bs (list[np.ndarray]): List of bias vectors.
-            Theta (np.ndarray): The flattened parameter vector containing all Ws and Bs.
+            Ws (list[Array]): List of weight matrices for each layer.
+            Bs (list[Array]): List of bias vectors.
+            Theta (Array): The flattened parameter vector containing all Ws and Bs.
         """
 
     def __init__(self) -> None:
-        self.Ws, self.Bs, self.fs = [], [], []
-        self.W_shapes, self.B_shapes = [], []
-        self.W_sizes, self.B_sizes = [], []
-        self.nb_layers, self.nb_params = 0, 0
-        self.Theta = np.array([])
+        self.Ws: list[Array] = []
+        self.Bs: list[Array] = []
+        self.fs: list[ActivationFunction] = []
+        self.W_shapes: list[tuple] = []
+        self.B_shapes: list[tuple] = []
+        self.W_sizes: list[int] = []
+        self.B_sizes: list[int] = []
+        self.nb_layers: int = 0
+        self.nb_params: int = 0
+        self.Theta: Array = np.array([])
 
     def push_layer(self, output_dim: int, input_dim: int | None = None, f: Callable = relu) -> None:
         """Adds a layer to the structure and updates the flat Theta vector.
@@ -65,13 +71,13 @@ class ParameterManager:
             self.Bs.append(self.Theta[idx:idx + size].reshape(shape))
             idx += size
 
-    def from_pThetas(self, Thetas: np.ndarray) -> tuple[list[np.ndarray], list[np.ndarray]]:
+    def from_pThetas(self, Thetas: Array) -> tuple[list[Array], list[Array]]:
         """Reconstructs temporary weight/bias matrices from a batch of perturbed Thetas.
 
         This is used to perform the forward pass on multiple perturbed models in parallel.
 
         Args:
-            Thetas (np.ndarray): A batch of flat parameter vectors. 
+            Thetas (Array): A batch of flat parameter vectors. 
                                  Shape: (nb_perturbations, nb_params)
 
         Returns:

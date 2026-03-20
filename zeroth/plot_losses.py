@@ -8,6 +8,8 @@ import pandas as pd
 from cycler import cycler
 from matplotlib.axes import Axes
 
+from .types import Array
+
 if TYPE_CHECKING:
     from .abstract.model import Model
 
@@ -64,7 +66,7 @@ def format_ax(ax: Axes) -> None:
     ax.spines['right'].set_visible(False)
 
 
-def plot_loss(ax: Axes, train_loss: np.ndarray, label: str, smooth_fraction: float = 0) -> None:
+def plot_loss(ax: Axes, train_loss: Array, label: str, smooth_fraction: float = 0) -> None:
     window_length = int(len(train_loss) * smooth_fraction)
     if window_length > 1:
         ax.plot(train_loss, alpha=0.25, linewidth=1.0)
@@ -74,7 +76,7 @@ def plot_loss(ax: Axes, train_loss: np.ndarray, label: str, smooth_fraction: flo
         ax.plot(train_loss, alpha=1, linewidth=2.5)
 
 
-def smooth_curve(loss: np.ndarray, window_length: int) -> np.ndarray:
+def smooth_curve(loss: Array, window_length: int) -> Array:
     return np.exp(pd.Series(np.log(loss)).ewm(span=window_length, adjust=True).mean())
 
 

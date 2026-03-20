@@ -1,15 +1,14 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Callable
 
-import numpy as np
+from ..types import Array, ActivationFunction
 
 
 @dataclass(frozen=True)
 class LayerConfig:
     input_dim: int
     output_dim: int
-    f: Callable
+    f: ActivationFunction
 
 
 @dataclass(frozen=True)
@@ -45,13 +44,13 @@ class BlackBox(ABC):
         pass
 
     @abstractmethod
-    def forward(self, X: np.ndarray) -> np.ndarray:
+    def forward(self, X: Array) -> Array:
         """Computes the forward pass.
 
         Args:
-            X (np.ndarray): Input data. Shape: (input_dim, batch_size).
+            X (Array): Input data. Shape: (input_dim, batch_size).
 
         Returns:
-            np.ndarray: Network predictions. Shape: (output_dim, batch_size).
+            Array: Network predictions. Shape: (output_dim, batch_size).
         """
         pass
