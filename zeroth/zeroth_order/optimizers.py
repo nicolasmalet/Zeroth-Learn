@@ -43,6 +43,14 @@ class ZerothOrderOptimizer(Optimizer):
     def do_descent(self, blackbox: ZerothOrderBlackBox, loss: Loss, X: np.ndarray, Y_true: np.ndarray) -> float:
         pass
 
+    @abstractmethod
+    def compute_gradient(self, blackbox: ZerothOrderBlackBox, loss: Loss, X: np.ndarray, Y_true: np.ndarray) -> tuple[float, np.ndarray]:
+        pass
+
+    @abstractmethod
+    def update_params(self, blackbox: ZerothOrderBlackBox, gradient: np.ndarray) -> None:
+        pass
+
 
 class ZerothOrderSGD(ZerothOrderOptimizer):
     """Abstract base class for optimizers using Stochastic Perturbation (zeroth_order).
@@ -80,10 +88,10 @@ class ZerothOrderSGD(ZerothOrderOptimizer):
         return avg_loss, gradient
 
     def update_params(self, blackbox: ZerothOrderBlackBox, gradient: np.ndarray) -> None:
-        final_gradient = self.apply_update_rule(gradient)
+        final_gradient = self._apply_update_rule(gradient)
         blackbox.update_params(final_gradient, self.learning_rate)
 
-    def apply_update_rule(self, grad: np.ndarray) -> np.ndarray:
+    def _apply_update_rule(self, grad: np.ndarray) -> np.ndarray:
         return grad
 
 
@@ -107,7 +115,7 @@ class ZerothOrderAdam(ZerothOrderSGD):
 
         super().__init__(config, gradient_estimator)
 
-    def apply_update_rule(self, grad: np.ndarray) -> np.ndarray:
+    def _apply_update_rule(self, grad: np.ndarray) -> np.ndarray:
         self.m = self.beta1 * self.m + (1 - self.beta1) * grad
         self.v = self.beta2 * self.v + (1 - self.beta2) * (grad ** 2)
         m_hat = self.m / (1 - self.beta1t)

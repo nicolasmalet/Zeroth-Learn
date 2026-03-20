@@ -30,7 +30,6 @@ class FirstOrderSGDConfig(FirstOrderOptimizerConfig):
 
 @dataclass(frozen=True)
 class FirstOrderAdamConfig(FirstOrderSGDConfig):
-    name = "Adam"
     beta1: float
     beta2: float
     epsilon: float
@@ -82,19 +81,19 @@ class FirstOrderSGD(FirstOrderOptimizer):
         # Propagation du gradient vers n-1
         dL_dAl = np.matmul(last_layer.W.T, dL_dZ)
 
-        final_dW, final_dB = self.apply_update_rule(last_layer, dW, dB)
+        final_dW, final_dB = self._apply_update_rule(last_layer, dW, dB)
         last_layer.update_layer(final_dW, final_dB, self.learning_rate)
 
         for i in range(neural_network.nb_layers - 2, -1, -1):
             layer = neural_network.layers[i]
             dL_dAl, dW, dB = layer.get_gradient(dL_dAl)
 
-            final_dW, final_dB = self.apply_update_rule(layer, dW, dB)
+            final_dW, final_dB = self._apply_update_rule(layer, dW, dB)
             layer.update_layer(final_dW, final_dB, self.learning_rate)
 
         return avg_loss
 
-    def apply_update_rule(self, layer: Layer, dW: np.ndarray, dB: np.ndarray) -> tuple:
+    def _apply_update_rule(self, layer: Layer, dW: np.ndarray, dB: np.ndarray) -> tuple:
         return dW, dB
 
 
@@ -117,7 +116,7 @@ class FirstOrderAdam(FirstOrderSGD):
         self.m: dict[tuple[Layer, str], float | np.ndarray] = defaultdict(float)
         self.v: dict[tuple[Layer, str], float | np.ndarray] = defaultdict(float)
 
-    def apply_update_rule(self, layer: Layer, dW: np.ndarray, dB: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    def _apply_update_rule(self, layer: Layer, dW: np.ndarray, dB: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         """Computes the adaptive update step for a specific layer.
 
         Args:
