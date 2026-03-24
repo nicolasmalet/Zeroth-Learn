@@ -167,7 +167,7 @@ class ExperimentCatalog:
 
     first_experiment: ExperimentConfig = ExperimentConfig(name="first_experiment",
                                                           title="Congrats for your first experiment ! ",
-                                                          base_model=MODELS.multiplex_linear_adam,
+                                                          base_model=MODELS.backprop_linear_adam,
                                                           variations=[],
                                                           create_data=create_data_mnist,
                                                           plot_dimension=0,

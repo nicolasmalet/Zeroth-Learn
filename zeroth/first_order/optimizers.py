@@ -75,11 +75,11 @@ class FirstOrderSGD(FirstOrderOptimizer):
 
         avg_loss, dL_dZ = loss.compute_losses_for_first_order(last_layer, Y_pred, Y_true)
 
-        dW = np.matmul(dL_dZ, last_layer.X.T) / last_layer.X.shape[0]
+        dW = last_layer.X.T @ dL_dZ / last_layer.X.shape[0]
         dB = np.mean(dL_dZ, axis=0)
 
         # Propagation du gradient vers n-1
-        dL_dAl = dL_dZ, last_layer.W.T
+        dL_dAl = dL_dZ @ last_layer.W.T
 
         final_dW, final_dB = self._apply_update_rule(last_layer, dW, dB)
         last_layer.update_layer(final_dW, final_dB, self.learning_rate)
