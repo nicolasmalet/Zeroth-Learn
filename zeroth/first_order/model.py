@@ -7,7 +7,7 @@ from .optimizers import FirstOrderOptimizerConfig, FirstOrderOptimizer
 from ..abstract import ModelConfig, Model, NeuralNetworkConfig
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class FirstOrderModelConfig(ModelConfig):
     neural_network_config: NeuralNetworkConfig
     optimizer_config: FirstOrderOptimizerConfig

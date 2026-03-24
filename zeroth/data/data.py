@@ -1,41 +1,32 @@
 import numpy as np
 
+from typing import Iterator
 from ..types import Array
 
 
 class Data:
-    """
-    Manages dataset loading, shuffling, and batching.
-    """
-
-    def __init__(self, raw_X_train: Array, raw_Y_train: Array, raw_X_test: Array,
-                 raw_Y_test: Array):
-        self.input_dim: int = raw_X_train.shape[1]
-        self.output_dim: int = raw_Y_train.shape[1]
-        self.nb_data: int = raw_X_train.shape[0]
-        self.nb_tests: int = raw_X_test.shape[0]
-
-        self.batch_size: int | None = None
-        self.nb_batches: int | None = None
-
+    def __init__(self, raw_X_train: Array, raw_Y_train: Array, raw_X_test: Array, raw_Y_test: Array) -> None:
         self.raw_X_train: Array = raw_X_train
         self.raw_Y_train: Array = raw_Y_train
         self.X_test: Array = raw_X_test
         self.Y_test: Array = raw_Y_test
 
-        self.X_train: Array = np.array([])
-        self.Y_train: Array = np.array([])
+        self.input_dim: int = self.raw_X_train.shape[1]
+        self.output_dim: int = self.raw_Y_train.shape[1]
 
-    def prepare_data(self, batch_size: int) -> None:
-        """Shuffles and splits the raw data into batches for a new epoch."""
-        self.batch_size = batch_size
-        self.nb_batches = self.nb_data // self.batch_size
+        self.nb_data: int = raw_X_train.shape[0]
+        self.batch_size: int | None = None
 
-        # Shuffle raw data
-        indexes = np.random.permutation(self.nb_data)
-        raw_X_train = self.raw_X_train[indexes, :]
-        raw_Y_train = self.raw_Y_train[indexes, :]
+        self.indices: np.ndarray = np.arange(self.nb_data)
 
-        # Split into batches (Shape: nb_batches, batch_size, dim)
-        self.X_train = np.stack(np.split(raw_X_train, self.nb_batches, axis=0), axis=0)
-        self.Y_train = np.stack(np.split(raw_Y_train, self.nb_batches, axis=0), axis=0)
+    def permutation(self) -> None:
+        self.indices = np.random.permutation(self.nb_data)
+
+    def __iter__(self) -> Iterator[tuple[Array, Array]]:
+        for i in range(0, self.nb_data - self.batch_size + 1, self.batch_size):
+            batch_idx = self.indices[i:i + self.batch_size]
+            yield self.raw_X_train[batch_idx], self.raw_Y_train[batch_idx]
+
+    @property
+    def nb_batches(self) -> int:
+        return self.nb_data // self.batch_size

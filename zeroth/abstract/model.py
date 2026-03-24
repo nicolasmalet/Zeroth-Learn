@@ -19,7 +19,7 @@ from ..types import Array
 from ..utils.dataclasses_utils import config_serializer
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class ModelConfig:
     """
     name (str): Name of the model (used for display and saving).
@@ -34,7 +34,7 @@ class ModelConfig:
     loss: Loss
     metric: Callable
     batch_size: int
-    nb_epochs: int
+    nb_epochs: int = 1
 
     def instantiate(self) -> Model:
         pass
@@ -74,18 +74,18 @@ class Model(ABC):
         Returns:
             Array: Array of loss values recorded at each step (for plotting).
         """
-
-        nb_batches = data.nb_data // self.batch_size
-
-        self.training_loss = np.zeros(self.nb_epochs * nb_batches, dtype=np.float64)
-
-        print_indexes = np.linspace(0, nb_batches - 1, nb_print).astype(int)
         print(f"    Training {self.id} Model")
+
+        data.batch_size = self.batch_size
+        nb_batches = data.nb_batches
+        self.training_loss = np.zeros(self.nb_epochs * nb_batches, dtype=np.float64)
+        print_indexes = np.linspace(0, nb_batches - 1, nb_print).astype(int)
+
         for epoch_idx in range(self.nb_epochs):
             print(f"        epoch n°{epoch_idx + 1} out of {self.nb_epochs}")
-            data.prepare_data(self.batch_size)
-            for batch_idx in range(nb_batches):
-                X_train, Y_train = data.X_train[batch_idx], data.Y_train[batch_idx]
+            data.permutation()
+            data.batch_size = self.batch_size
+            for batch_idx, (X_train, Y_train) in enumerate(data):
                 avg_loss = self.optimizer.do_descent(self.neural_network, self.loss, X_train, Y_train)
                 self.training_loss[epoch_idx * nb_batches + batch_idx] = avg_loss
 
