@@ -96,9 +96,9 @@ pThetas = theta[None, :] + perturbations
 Ws, Bs = params.from_pThetas(pThetas)  
 
 # Broadcast input across all T models simultaneously
-# X: (input_dim, batch) -> (T, input_dim, batch)
+# X: (batch, input_dim) -> (T, batch, input_dim)
 for W, B, f in zip(Ws, Bs, fs):
-    X = f(W @ X + B)  # Matrix multiplication broadcasts automatically
+    X = f(X @ W + B)  # Matrix multiplication broadcasts automatically
 ```
 
 **Result**: All T forward passes execute in a single vectorized NumPy operation.

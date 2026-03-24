@@ -6,25 +6,27 @@ from ..types import Array
 
 
 class MSE(Loss):
+    name = "MSE"
+
     @staticmethod
     def compute_loss(Y_pred: Array, Y_true: Array) -> float:
-        return np.mean((Y_pred - Y_true) ** 2, axis=(0, 1))
+        return float(np.mean((Y_pred - Y_true) ** 2))
 
     @staticmethod
     def compute_batch_losses(Y_pred: Array, Y_true: Array) -> Array:
-        return np.mean((Y_pred - Y_true) ** 2, axis=0)
+        return np.mean((Y_pred - Y_true) ** 2, axis=1)
 
     @staticmethod
     def compute_perturbed_losses(pY_pred: Array, Y_true: Array) -> Array:
-        return np.mean((pY_pred - Y_true) ** 2, axis=1)
+        return np.mean((pY_pred - Y_true) ** 2, axis=2)
 
     @staticmethod
     def compute_gradient_wrt_activation(Y_pred: Array, Y_true: Array) -> Array:
-        return 2 * np.mean(Y_pred - Y_true, axis=0)
+        return 2 * (Y_pred - Y_true) / Y_true.shape[1]
 
     @staticmethod
     def compute_gradient_wrt_preactivation(last_layer: Layer, Y_pred: Array, Y_true: Array) -> Array:
-        dL_dA = 2 * (Y_pred - Y_true) / Y_true.size
+        dL_dA = 2 * (Y_pred - Y_true) / Y_true.shape[1]
         dL_dZ = dL_dA * last_layer.df(last_layer.Z)
         return dL_dZ
 

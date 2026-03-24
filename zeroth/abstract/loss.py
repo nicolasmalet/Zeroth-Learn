@@ -8,8 +8,8 @@ class Loss(ABC):
     @abstractmethod
     def compute_loss(Y_pred: Array, Y_true: Array) -> float:
         """
-        :param Y_pred: shape (out, batch)
-        :param Y_true: shape (out, batch)
+        :param Y_pred: shape (batch, out)
+        :param Y_true: shape (batch, out)
         :return: avg loss shape: float
         """
         pass
@@ -18,8 +18,8 @@ class Loss(ABC):
     @abstractmethod
     def compute_batch_losses(Y_pred: Array, Y_true: Array) -> Array:
         """
-        :param Y_pred: shape (out, batch)
-        :param Y_true: shape (out, batch)
+        :param Y_pred: shape (batch, out)
+        :param Y_true: shape (batch, out)
         :return: batch loss shape (batch, )
         """
         pass
@@ -28,8 +28,8 @@ class Loss(ABC):
     @abstractmethod
     def compute_perturbed_losses(pY_pred: Array, Y_true: Array) -> Array:
         """
-        :param pY_pred: (T, out, batch)
-        :param Y_true: (out, batch)
+        :param pY_pred: (T, batch, out)
+        :param Y_true: (batch, out)
         :return: perturbed loss (nb_params, T)
         """
         pass
@@ -39,8 +39,8 @@ class Loss(ABC):
     def compute_gradient_wrt_preactivation(last_layer, Y_pred: Array, Y_true: Array) -> Array:
         """
         :param last_layer: last_layer of the network
-        :param Y_pred: shape (out, batch)
-        :param Y_true: shape (out, batch)
+        :param Y_pred: shape (batch, out)
+        :param Y_true: shape (batch, out)
         :return: batch loss shape (batch, )
         """
         pass

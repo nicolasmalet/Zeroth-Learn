@@ -25,7 +25,6 @@ class ParameterManager:
         self.Bs: list[Array] = []
         self.fs: list[ActivationFunction] = []
         self.W_shapes: list[tuple] = []
-        self.B_shapes: list[tuple] = []
         self.W_sizes: list[int] = []
         self.B_sizes: list[int] = []
         self.nb_layers: int = 0
@@ -42,15 +41,14 @@ class ParameterManager:
         """
         input_dim = self.B_sizes[-1] if input_dim is None else input_dim
         limit = np.sqrt(6.0 / (input_dim + output_dim))
-        W = np.random.uniform(-limit, limit, (output_dim, input_dim))
-        B = np.zeros((output_dim, 1))
+        W = np.random.uniform(-limit, limit, (input_dim, output_dim))
+        B = np.zeros(output_dim)
         self.Ws.append(W)
         self.Bs.append(B)
         self.fs.append(f)
         self.W_shapes.append(W.shape)
-        self.B_shapes.append(B.shape)
         self.W_sizes.append(W.size)
-        self.B_sizes.append(B.size)
+        self.B_sizes.append(output_dim)
         self.nb_layers += 1
         self.nb_params += W.size + B.size
         self.update_theta()
@@ -67,8 +65,8 @@ class ParameterManager:
         for size, shape in zip(self.W_sizes, self.W_shapes):
             self.Ws.append(self.Theta[idx:idx + size].reshape(shape))
             idx += size
-        for size, shape in zip(self.B_sizes, self.B_shapes):
-            self.Bs.append(self.Theta[idx:idx + size].reshape(shape))
+        for size in self.B_sizes:
+            self.Bs.append(self.Theta[idx:idx + size])
             idx += size
 
     def from_pThetas(self, Thetas: Array) -> tuple[list[Array], list[Array]]:
@@ -81,7 +79,7 @@ class ParameterManager:
                                  Shape: (nb_perturbations, nb_params)
 
         Returns:
-            tuple: (Ws_list, Bs_list) where each element has shape (nb_perturbations, out, in).
+            tuple: (Ws_list, Bs_list).
         """
         if Thetas.ndim == 1:
             Thetas = Thetas[None, :]
@@ -92,7 +90,7 @@ class ParameterManager:
         for size, shape in zip(self.W_sizes, self.W_shapes):
             Ws.append(Thetas[:, idx:idx + size].reshape(N, *shape))
             idx += size
-        for size, shape in zip(self.B_sizes, self.B_shapes):
-            Bs.append(Thetas[:, idx:idx + size].reshape(N, *shape))
+        for size in self.B_sizes:
+            Bs.append(Thetas[:, idx:idx + size].reshape(N, 1, size))
             idx += size
         return Ws, Bs

@@ -34,13 +34,13 @@ class ZerothOrderNeuralNetwork(ZerothOrderBlackBox):
         """Standard forward pass using the current nominal weights.
 
         Args:
-            X (Array): Input batch. Shape: (input_dim, batch_size).
+            X (Array): Input batch. Shape: (batch_size, input_dim).
 
         Returns:
-            Array: Output. Shape: (output_dim, batch_size).
+            Array: Output. Shape: (batch_size, output_dim).
         """
         for W, B, f in zip(self.params.Ws, self.params.Bs, self.params.fs):
-            X = f(W @ X + B)
+            X = f(X @ W + B)
         return X
 
     def forward_perturbed(self, X: Array, gradient_estimator: GradientEstimator) -> Array:
@@ -50,18 +50,18 @@ class ZerothOrderNeuralNetwork(ZerothOrderBlackBox):
         to compute T outputs simultaneously without a Python loop.
 
         Args:
-            X (Array): Input batch. Shape: (input_dim, batch_size).
+            X (Array): Input batch. Shape: (batch_size, input_dim).
             gradient_estimator (GradientEstimator): The gradient_estimator object.
 
         Returns:
-            Array: Stacked outputs. Shape: (T, output_dim, batch_size)
+            Array: Stacked outputs. Shape: (T, batch_size, output_dim)
                         where T is the number of perturbations.
         """
         pThetas = gradient_estimator.perturb(self.params.Theta)  # Shape: (T, nb_params)
-        Ws, Bs = self.params.from_pThetas(pThetas)  # Ws: list of (T, out, in), Bs: list of (T , out, 1)
+        Ws, Bs = self.params.from_pThetas(pThetas)  # Ws: list of (T, in, out), Bs: list of (T, out)
 
         for W, B, f in zip(Ws, Bs, self.params.fs):
-            X = W @ X + B
+            X = X @ W + B
             X = f(X)
 
         return X

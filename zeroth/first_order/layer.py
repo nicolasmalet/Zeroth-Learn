@@ -8,11 +8,11 @@ class Layer:
     """Represents a fully connected layer in a neural network using first_order.
 
     Attributes:
-        W (Array): Weight matrix of shape (output_dim, input_dim).
-        B (Array): Bias vector of shape (output_dim, 1).
-        X (Array): Input stored during forward pass for backprop. Shape (input_dim, batch_size).
-        Z (Array): Pre-activation linear combination. Shape (output_dim, batch_size).
-        A (Array): Activated output. Shape (output_dim, batch_size).
+        W (Array): Weight matrix of shape (input_dim, output_dim).
+        B (Array): Bias vector of shape (output_dim).
+        X (Array): Input stored during forward pass for backprop. Shape (batch_size, input_dim).
+        Z (Array): Pre-activation linear combination. Shape (batch_size, output_dim).
+        A (Array): Activated output. Shape (batch_size, output_dim).
     """
 
     def __init__(self, output_dim: int, input_dim: int, f: ActivationFunction) -> None:
@@ -28,8 +28,8 @@ class Layer:
         self.df: ActivationFunction = get_df[f]
 
         limit = np.sqrt(6.0 / (input_dim + output_dim))
-        self.W: Array = np.random.uniform(-limit, limit, (output_dim, input_dim))
-        self.B: Array = np.zeros((output_dim, 1))
+        self.W: Array = np.random.uniform(-limit, limit, (input_dim, output_dim))
+        self.B: Array = np.zeros(output_dim)
 
         self.X: Array = np.array([])
         self.Z: Array = np.array([])
@@ -39,13 +39,13 @@ class Layer:
         """Performs the forward pass.
 
         Args:
-            X (Array): Input data of shape (input_dim, batch_size).
+            X (Array): Input data of shape (batch_size, input_dim).
 
         Returns:
-            Array: The activated output (A) of shape (output_dim, batch_size).
+            Array: The activated output (A) of shape (batch_size, output_dim).
         """
         self.X = X
-        self.Z = np.matmul(self.W, X) + self.B
+        self.Z = X @ self.W + self.B
         self.A = self.f(self.Z)
         return self.A
 
@@ -54,7 +54,7 @@ class Layer:
 
         Args:
             dL_dA (Array): Gradient of the Loss w.r.t. the output A of this layer.
-                                Shape: (output_dim, batch_size).
+                                Shape: (batch_size, output_dim).
 
         Returns:
             tuple: A tuple containing:
@@ -63,12 +63,10 @@ class Layer:
                 - dL_dB (Array): Gradient w.r.t. biases B.
         """
         df_Z = self.df(self.Z)
-        dL_dZ = df_Z * dL_dA
-
-        dL_dW = np.matmul(dL_dZ, self.X.T) / self.X.shape[1]
-        dL_dB = np.mean(dL_dZ, axis=1, keepdims=True)
-
-        dL_dA_prev = np.matmul(self.W.T, dL_dZ)
+        dL_dZ = dL_dA * df_Z
+        dL_dW = self.X.T @ dL_dZ / self.X.shape[0]
+        dL_dB = np.mean(dL_dZ, axis=0)
+        dL_dA_prev = dL_dZ @ self.W.T
 
         return dL_dA_prev, dL_dW, dL_dB
 

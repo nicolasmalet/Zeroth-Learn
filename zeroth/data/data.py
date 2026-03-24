@@ -10,10 +10,10 @@ class Data:
 
     def __init__(self, raw_X_train: Array, raw_Y_train: Array, raw_X_test: Array,
                  raw_Y_test: Array):
-        self.input_dim: int = raw_X_train.shape[0]
-        self.output_dim: int = raw_Y_train.shape[0]
-        self.nb_data: int = raw_X_train.shape[1]
-        self.nb_tests: int = raw_X_test.shape[1]
+        self.input_dim: int = raw_X_train.shape[1]
+        self.output_dim: int = raw_Y_train.shape[1]
+        self.nb_data: int = raw_X_train.shape[0]
+        self.nb_tests: int = raw_X_test.shape[0]
 
         self.batch_size: int | None = None
         self.nb_batches: int | None = None
@@ -33,9 +33,9 @@ class Data:
 
         # Shuffle raw data
         indexes = np.random.permutation(self.nb_data)
-        raw_X_train = self.raw_X_train[:, indexes]
-        raw_Y_train = self.raw_Y_train[:, indexes]
+        raw_X_train = self.raw_X_train[indexes, :]
+        raw_Y_train = self.raw_Y_train[indexes, :]
 
-        # Split into batches (Shape: nb_batches, dim, batch_size)
-        self.X_train = np.stack(np.split(raw_X_train, self.nb_batches, axis=1), axis=0)
-        self.Y_train = np.stack(np.split(raw_Y_train, self.nb_batches, axis=1), axis=0)
+        # Split into batches (Shape: nb_batches, batch_size, dim)
+        self.X_train = np.stack(np.split(raw_X_train, self.nb_batches, axis=0), axis=0)
+        self.Y_train = np.stack(np.split(raw_Y_train, self.nb_batches, axis=0), axis=0)

@@ -18,13 +18,13 @@ def sigmoid(x: float | Array) -> float | Array:
 def softmax(x: float | Array) -> float | Array:
     """
     Stabilization: We subtract the maximum to avoid overflow (inf)
-    axis=-2 is important for handling:
-    - (output_dim, batch) -> standard calculation
-    - (T, output_dim, batch) -> calculation for zeroth_order
+    axis=-1 is important for handling:
+    - (batch, output_dim) -> standard calculation
+    - (T, batch, output_dim) -> calculation for zeroth_order
     """
-    shift_x = x - np.max(x, axis=-2, keepdims=True)
+    shift_x = x - np.max(x, axis=-1, keepdims=True)
     e = np.exp(shift_x)
-    return e / np.sum(e, axis=-2, keepdims=True)
+    return e / np.sum(e, axis=-1, keepdims=True)
 
 
 def sigmoid_derivative(x: float | Array) -> float | Array:
