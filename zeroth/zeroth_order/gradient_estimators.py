@@ -121,4 +121,4 @@ class SimultaneousPerturbation(GradientEstimator):
     def get_gradient(self, p_Loss: Array) -> Array:
         L_diff = p_Loss[1:] - p_Loss[0]
         Ps = self.Ps_extended[1:, self.last_offset:self.last_offset + self.nb_params]
-        return Ps.T @ L_diff.mean(axis=1) / self.dA
+        return Ps.T @ L_diff.mean(axis=1) / (self.dA * self.nb_perturbations)
