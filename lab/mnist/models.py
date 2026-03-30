@@ -64,7 +64,7 @@ class ModelCatalog:
         loss=losses.CrossEntropy(),
         metric=accuracy,
         batch_size=DEFAULT_BATCH_SIZE,
-        nb_epochs=DEFAULT_NB_EPOCHS,
+        nb_epochs=5,
     )
 
     multiplex_linear_adam: ZerothOrderModelConfig = ZerothOrderModelConfig(

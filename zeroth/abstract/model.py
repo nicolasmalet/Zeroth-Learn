@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import os
 import pickle
-from abc import ABC
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Callable
 
@@ -20,7 +20,7 @@ from ..utils.dataclasses_utils import config_serializer
 
 
 @dataclass(frozen=True, kw_only=True)
-class ModelConfig:
+class ModelConfig(ABC):
     """
     name (str): Name of the model (used for display and saving).
     loss (Loss): The loss class.
@@ -36,6 +36,7 @@ class ModelConfig:
     batch_size: int
     nb_epochs: int = 1
 
+    @abstractmethod
     def instantiate(self) -> Model:
         pass
 

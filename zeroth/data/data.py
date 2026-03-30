@@ -1,6 +1,7 @@
+from typing import Iterator
+
 import numpy as np
 
-from typing import Iterator
 from ..types import Array
 
 
@@ -10,9 +11,6 @@ class Data:
         self.raw_Y_train: Array = raw_Y_train
         self.X_test: Array = raw_X_test
         self.Y_test: Array = raw_Y_test
-
-        self.input_dim: int = self.raw_X_train.shape[1]
-        self.output_dim: int = self.raw_Y_train.shape[1]
 
         self.nb_data: int = raw_X_train.shape[0]
         self.batch_size: int | None = None

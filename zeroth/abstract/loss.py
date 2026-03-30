@@ -30,7 +30,7 @@ class Loss(ABC):
         """
         :param pY_pred: (T, batch, out)
         :param Y_true: (batch, out)
-        :return: perturbed loss (nb_params, T)
+        :return: perturbed loss (T, nb_params)
         """
         pass
 

@@ -10,7 +10,8 @@ from ..types import Array
 
 
 @dataclass(frozen=True)
-class GradientEstimatorConfig:
+class GradientEstimatorConfig(ABC):
+    @abstractmethod
     def instantiate(self, nb_params: int) -> GradientEstimator:
         pass
 
@@ -22,11 +23,20 @@ class NullGradientEstimatorConfig(GradientEstimatorConfig):
 
 
 @dataclass(frozen=True)
-class FiniteDifferenceConfig(GradientEstimatorConfig):
+class GlobalFiniteDifferenceConfig(GradientEstimatorConfig):
     dA: float
 
-    def instantiate(self, nb_params) -> FiniteDifference:
-        return FiniteDifference(self, nb_params)
+    def instantiate(self, nb_params) -> GlobalFiniteDifference:
+        return GlobalFiniteDifference(self, nb_params)
+
+
+@dataclass(frozen=True)
+class PartialFiniteDifferenceConfig(GradientEstimatorConfig):
+    dA: float
+    indexes: list[int]
+
+    def instantiate(self, nb_params) -> PartialFiniteDifference:
+        return PartialFiniteDifference(self, nb_params)
 
 
 @dataclass(frozen=True)
@@ -78,8 +88,8 @@ class NullGradientEstimator(GradientEstimator):
         return np.zeros(self.nb_params)
 
 
-class FiniteDifference(GradientEstimator):
-    def __init__(self, config: FiniteDifferenceConfig, nb_params: int) -> None:
+class GlobalFiniteDifference(GradientEstimator):
+    def __init__(self, config: GlobalFiniteDifferenceConfig, nb_params: int) -> None:
         self.nb_params: int = nb_params
         self.dA: float = config.dA
 
@@ -92,6 +102,26 @@ class FiniteDifference(GradientEstimator):
     def get_gradient(self, p_Loss: Array) -> Array:
         L_diff = p_Loss[1:] - p_Loss[0]
         return np.mean(L_diff, axis=1) / self.dA
+
+
+class PartialFiniteDifference(GradientEstimator):
+    def __init__(self, config: PartialFiniteDifferenceConfig, nb_params: int) -> None:
+        self.nb_params: int = nb_params
+        self.dA: float = config.dA
+        self.indexes = config.indexes
+        self.nb_perturbations = len(config.indexes)
+
+        self.perturbation_matrix: Array = np.zeros((self.nb_perturbations + 1, self.nb_params))
+        self.perturbation_matrix[range(1, self.nb_perturbations + 1), self.indexes] = 1
+
+        self.Ps: Array = config.dA * self.perturbation_matrix
+
+    def perturb(self, Theta: Array) -> Array:
+        return Theta + self.Ps
+
+    def get_gradient(self, p_Loss: Array) -> Array:
+        L_diff = p_Loss[1:] - p_Loss[0]
+        return self.Ps[1:].T @ L_diff.mean(axis=1) / self.dA
 
 
 class SimultaneousPerturbation(GradientEstimator):

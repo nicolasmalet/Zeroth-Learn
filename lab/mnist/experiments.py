@@ -107,10 +107,10 @@ class ExperimentCatalog:
 
     small_sizes: ExperimentConfig = ExperimentConfig(name="small_sizes",
                                                      title="Effect of Network size on loss",
-                                                     base_model=MODELS.backprop_s_adam_5epochs,
+                                                     base_model=MODELS.backprop_linear_adam,
                                                      variations=[VARIATIONS.small_networks],
                                                      create_data=create_data_mnist,
-                                                     plot_dimension=1,
+                                                     plot_dimension=0,
                                                      smooth_fraction=SMOOTH_FRACTION)
 
     adam_vs_sgd: ExperimentConfig = ExperimentConfig(name="adam_vs_sgd",
