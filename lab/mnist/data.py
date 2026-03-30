@@ -8,7 +8,7 @@ def create_data_mnist() -> Data:
     mnist = fetch_openml('mnist_784', version=1)
 
     # Load data
-    X = np.array(mnist.data.astype("float32"))  # 70 000 images
+    X = np.array(mnist.data.astype("float64"))  # 70 000 images
     Y = np.array(mnist.target.astype("int64"), dtype=int).reshape(-1, 1)
 
     X_train, X_test = X[:60000, :], X[60000:, :]

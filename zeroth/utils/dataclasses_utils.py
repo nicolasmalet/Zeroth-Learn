@@ -32,10 +32,6 @@ def generate_param_map(config_instance: Any, prefix: str = "", param_map: dict =
     return param_map
 
 
-def get_catalog_values(catalog_instance: Any) -> list[Any]:
-    return [getattr(catalog_instance, f.name) for f in fields(catalog_instance)]
-
-
 def set_value_by_path(obj: Any, path: str, value: Any) -> Any:
     parts = path.split(".", 1)
     field = parts[0]

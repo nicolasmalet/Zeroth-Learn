@@ -1,0 +1,2 @@
+DATA_SIZE = 784
+NB_CLASS = 10
