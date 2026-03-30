@@ -19,7 +19,7 @@ EPSILON = 1e-8
 
 @dataclass(frozen=True)
 class GradientEstimatorCatalog:
-    finite_difference: zeroth.FiniteDifferenceConfig = zeroth.FiniteDifferenceConfig(dA=DEFAULT_PERTURBATION_SCALE)
+    finite_difference: zeroth.GlobalFiniteDifferenceConfig = zeroth.GlobalFiniteDifferenceConfig(dA=DEFAULT_PERTURBATION_SCALE)
     simultaneous_perturbation: zeroth.SimultaneousPerturbationConfig = zeroth.SimultaneousPerturbationConfig(
         dA=DEFAULT_PERTURBATION_SCALE,
         nb_perturbations=DEFAULT_NB_PERTURBATION,
