@@ -4,6 +4,9 @@ from ..types import Array
 
 
 class Loss(ABC):
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}()"
+
     @staticmethod
     @abstractmethod
     def compute_loss(Y_pred: Array, Y_true: Array) -> float:

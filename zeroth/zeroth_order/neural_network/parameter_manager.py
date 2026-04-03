@@ -1,9 +1,8 @@
-from typing import Callable
-
 import numpy as np
 
-from ...types import Array, ActivationFunction
-from ...utils.activation_functions import relu
+from ...abstract.activation import Activation
+from ...types import Array
+from ...utils.activation_functions import ReLU
 
 
 class ParameterManager:
@@ -23,7 +22,7 @@ class ParameterManager:
     def __init__(self) -> None:
         self.Ws: list[Array] = []
         self.Bs: list[Array] = []
-        self.fs: list[ActivationFunction] = []
+        self.fs: list[Activation] = []
         self.W_shapes: list[tuple] = []
         self.W_sizes: list[int] = []
         self.B_sizes: list[int] = []
@@ -31,7 +30,7 @@ class ParameterManager:
         self.nb_params: int = 0
         self.Theta: Array = np.array([])
 
-    def push_layer(self, output_dim: int, input_dim: int | None = None, f: Callable = relu) -> None:
+    def push_layer(self, output_dim: int, input_dim: int | None = None, f: Activation = ReLU()) -> None:
         """Adds a layer to the structure and updates the flat Theta vector.
 
         Args:
@@ -62,25 +61,12 @@ class ParameterManager:
 
         self.Ws, self.Bs = [], []
         idx = 0
-        for size, shape in zip(self.W_sizes, self.W_shapes):
+        for size, shape in zip(self.W_sizes, self.W_shapes, strict=True):
             self.Ws.append(self.Theta[idx:idx + size].reshape(shape))
             idx += size
         for size in self.B_sizes:
             self.Bs.append(self.Theta[idx:idx + size])
             idx += size
-
-    def from_pThetas(self, Thetas: Array) -> tuple[list[Array], list[Array]]:
-        """Reconstructs temporary weight/bias matrices from a batch of perturbed Thetas.
-
-        This is used to perform the forward pass on multiple perturbed models in parallel.
-
-        Args:
-            Thetas (Array): A batch of flat parameter vectors. 
-                                 Shape: (nb_perturbations, nb_params)
-
-        Returns:
-            tuple: (Ws_list, Bs_list).
-        """
 
     def iter_pThetas(self, Thetas: Array):
         """Reconstructs temporary weight/bias matrices from a batch of perturbed Thetas.
@@ -99,7 +85,7 @@ class ParameterManager:
         idx_w = 0
         idx_b = sum(self.W_sizes)
 
-        for w_size, w_shape, b_size in zip(self.W_sizes, self.W_shapes, self.B_sizes):
+        for w_size, w_shape, b_size in zip(self.W_sizes, self.W_shapes, self.B_sizes, strict=True):
             Ws = Thetas[:, idx_w: idx_w + w_size].reshape(N, *w_shape)
             Bs = Thetas[:, idx_b: idx_b + b_size].reshape(N, 1, b_size)
 

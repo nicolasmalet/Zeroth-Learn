@@ -1,3 +1,4 @@
+import json
 from dataclasses import is_dataclass, asdict, replace
 from typing import Any
 
@@ -6,6 +7,7 @@ def get_name(obj: Any) -> Any:
     if hasattr(obj, "name"):
         return obj.name
     return obj
+
 
 def set_value_by_path(obj: Any, path: str, value: Any) -> Any:
     parts = path.split(".", 1)
@@ -30,6 +32,15 @@ def config_serializer(obj: Any):
         return asdict(obj)
     if callable(obj):
         return getattr(obj, "__name__", str(obj))
-    if hasattr(obj, "name"):
-        return obj.name
+
     return str(obj)
+
+
+class Summary:
+    def summary(self) -> None:
+        summary = json.dumps(
+            self,
+            default=config_serializer,
+            indent=4
+        )
+        print(summary)

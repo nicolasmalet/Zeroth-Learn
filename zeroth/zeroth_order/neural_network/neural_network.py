@@ -1,11 +1,11 @@
 from .parameter_manager import ParameterManager
 from .. import GradientEstimator
 from ..zeroth_order_blackbox import ZerothOrderBlackBox
-from ...abstract.blackbox import NeuralNetworkConfig
+from ...abstract import NeuralNetworkConfig, NeuralNetwork
 from ...types import Array
 
 
-class ZerothOrderNeuralNetwork(ZerothOrderBlackBox):
+class ZerothOrderNeuralNetwork(NeuralNetwork, ZerothOrderBlackBox):
     """Neural Network implementation optimized for zeroth_order (parameter vector manipulation).
 
     Attributes:
@@ -13,14 +13,15 @@ class ZerothOrderNeuralNetwork(ZerothOrderBlackBox):
     """
 
     def __init__(self, config: NeuralNetworkConfig) -> None:
-        self.name: str = config.name
+        super().__init__(config)
         self.params: ParameterManager = ParameterManager()
-        self.input_dim: int = config.layers_config[0].input_dim
-        self.output_dim: int = config.layers_config[-1].output_dim
         for layer_config in config.layers_config:
             self.params.push_layer(layer_config.output_dim,
                                    layer_config.input_dim,
-                                   layer_config.f)
+                                   layer_config.activation)
+
+    def __call__(self, X: Array) -> Array:
+        return self.forward(X)
 
     def init_params(self, params: dict) -> None:
         self.params.Ws = params["Ws"]
@@ -39,7 +40,7 @@ class ZerothOrderNeuralNetwork(ZerothOrderBlackBox):
         Returns:
             Array: Output. Shape: (batch_size, output_dim).
         """
-        for W, B, f in zip(self.params.Ws, self.params.Bs, self.params.fs):
+        for W, B, f in zip(self.params.Ws, self.params.Bs, self.params.fs, strict=True):
             X = f(X @ W + B)
         return X
 
@@ -59,7 +60,7 @@ class ZerothOrderNeuralNetwork(ZerothOrderBlackBox):
         """
         pThetas = gradient_estimator.perturb(self.params.Theta)  # Shape: (T, nb_params)
 
-        for (Ws, Bs), f in zip(self.params.iter_pThetas(pThetas), self.params.fs):
+        for (Ws, Bs), f in zip(self.params.iter_pThetas(pThetas), self.params.fs, strict=True):
             X = X @ Ws + Bs
             X = f(X)
 

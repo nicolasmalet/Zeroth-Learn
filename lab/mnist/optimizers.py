@@ -1,6 +1,6 @@
 from zeroth import first_order as first
 from zeroth import zeroth_order as zeroth
-from zeroth.utils.perturbation_matrices import rademacher_matrix
+from zeroth.utils.perturbation_matrices import RademacherMatrix
 
 DEFAULT_PERTURBATION_SCALE = 1e-8
 DEFAULT_ADAM_LEARNING_RATE = 1e-3
@@ -21,7 +21,7 @@ finite_difference: zeroth.GlobalFiniteDifferenceConfig = zeroth.GlobalFiniteDiff
 simultaneous_perturbation: zeroth.SimultaneousPerturbationConfig = zeroth.SimultaneousPerturbationConfig(
     dA=DEFAULT_PERTURBATION_SCALE,
     nb_perturbations=DEFAULT_NB_PERTURBATION,
-    get_perturbation_matrix=rademacher_matrix)
+    get_perturbation_matrix=RademacherMatrix())
 
 zeroth_order_sgd: zeroth.ZerothOrderSGDConfig = zeroth.ZerothOrderSGDConfig(learning_rate=DEFAULT_SGD_LEARNING_RATE)
 zeroth_order_adam: zeroth.ZerothOrderAdamConfig = zeroth.ZerothOrderAdamConfig(

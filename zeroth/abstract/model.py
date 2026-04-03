@@ -16,11 +16,11 @@ from .optimizer import Optimizer
 from ..data import Data
 from ..plot_losses import plot_losses
 from ..types import Array
-from ..utils.dataclasses_utils import config_serializer
+from ..utils.dataclasses_utils import config_serializer, Summary
 
 
 @dataclass(frozen=True, kw_only=True)
-class ModelConfig(ABC):
+class ModelConfig(ABC, Summary):
     """
     name (str): Name of the model (used for display and saving).
     loss (Loss): The loss class.
@@ -41,13 +41,16 @@ class ModelConfig(ABC):
         pass
 
 
-class Model(ABC):
+class Model(ABC, Summary):
     """
     Base class orchestrating the training and testing loop.
 
     This class abstracts the abstract logic for training
     regardless of the underlying engine (Backpropagation or zeroth_order).
     """
+
+    neural_network: BlackBox
+    optimizer: Optimizer
 
     def __init__(self, config: ModelConfig):
         self.config = config
@@ -58,12 +61,10 @@ class Model(ABC):
         self.metric: Callable = config.metric
         self.batch_size: int = config.batch_size
         self.nb_epochs: int = config.nb_epochs
-        self.neural_network: BlackBox | None = None
-        self.optimizer: Optimizer | None = None
 
         self.training_loss: Array = np.array([])
-        self.test_loss: float | None = None
-        self.test_accuracy: float | None = None
+        self.test_loss: float = float("nan")
+        self.test_accuracy: float = float("nan")
 
     def train(self, data: Data, nb_print: int = 0) -> None:
         """Runs the training loop over the dataset.
@@ -100,7 +101,7 @@ class Model(ABC):
 
     def test(self, data: Data) -> None:
         X_test, Y_true = data.X_test, data.Y_test  # (in, batch), (out, batch)
-        Y_pred = self.neural_network.forward(X_test)  # (out, batch)
+        Y_pred = self.neural_network(X_test)  # (out, batch)
 
         self.test_accuracy = self.metric(Y_pred, Y_true)
         self.test_loss = self.loss.compute_loss(Y_pred, Y_true)

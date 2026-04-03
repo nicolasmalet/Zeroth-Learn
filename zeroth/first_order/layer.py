@@ -1,7 +1,7 @@
 import numpy as np
 
-from ..types import Array, ActivationFunction
-from ..utils.activation_functions import get_df
+from ..abstract.activation import Activation
+from ..types import Array
 
 
 class Layer:
@@ -15,17 +15,16 @@ class Layer:
         A (Array): Activated output. Shape (batch_size, output_dim).
     """
 
-    def __init__(self, output_dim: int, input_dim: int, f: ActivationFunction) -> None:
+    def __init__(self, output_dim: int, input_dim: int, activation: Activation) -> None:
         """Initializes the layer with random weights and zeros biases.
 
         Args:
             output_dim (int): Number of neurons in this layer.
             input_dim (int): Number of neurons in the previous layer.
-            f (ActivationFunction): Activation function (e.g., relu, sigmoid).
+            activation (Activation): Activation function (e.g., relu, sigmoid).
         """
         self.output_dim: int = output_dim
-        self.f: ActivationFunction = f
-        self.df: ActivationFunction = get_df[f]
+        self.activation: Activation = activation
 
         limit = np.sqrt(6.0 / (input_dim + output_dim))
         self.W: Array = np.random.uniform(-limit, limit, (input_dim, output_dim))
@@ -34,6 +33,9 @@ class Layer:
         self.X: Array = np.array([])
         self.Z: Array = np.array([])
         self.A: Array = np.array([])
+
+    def __call__(self, X: Array) -> Array:
+        return self.forward(X)
 
     def forward(self, X: Array) -> Array:
         """Performs the forward pass.
@@ -46,7 +48,7 @@ class Layer:
         """
         self.X = X
         self.Z = X @ self.W + self.B
-        self.A = self.f(self.Z)
+        self.A = self.activation(self.Z)
         return self.A
 
     def get_gradient(self, dL_dA: Array) -> tuple[Array, Array, Array]:
@@ -62,7 +64,7 @@ class Layer:
                 - dL_dW (Array): Gradient w.r.t. weights W.
                 - dL_dB (Array): Gradient w.r.t. biases B.
         """
-        df_Z = self.df(self.Z)
+        df_Z = self.activation.derivative(self.Z)
         dL_dZ = dL_dA * df_Z
         dL_dW = self.X.T @ dL_dZ / self.X.shape[0]
         dL_dB = np.mean(dL_dZ, axis=0)

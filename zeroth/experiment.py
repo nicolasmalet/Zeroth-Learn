@@ -10,7 +10,7 @@ import pandas as pd
 from .abstract import Model, ModelConfig
 from .data import Data
 from .plot_losses import plot_losses
-from .utils.dataclasses_utils import get_name, set_value_by_path
+from .utils.dataclasses_utils import get_name, set_value_by_path, Summary
 
 
 @dataclass(frozen=True)
@@ -21,7 +21,7 @@ class VariationConfig:
 
 
 @dataclass(frozen=True)
-class ExperimentConfig:
+class ExperimentConfig(Summary):
     name: str
     title: str
     base_model: ModelConfig
@@ -34,7 +34,7 @@ class ExperimentConfig:
         return Experiment(self)
 
 
-class Experiment:
+class Experiment(Summary):
     """Manages the full lifecycle of a deep learning experiment.
 
     It handles data loading, model instantiation, training loops, and results visualization.

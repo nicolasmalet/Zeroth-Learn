@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Callable
 
 import numpy as np
 
+from ..abstract.perturbation_matrix import PerturbationMatrix
 from ..types import Array
 
 
@@ -43,7 +43,7 @@ class PartialFiniteDifferenceConfig(GradientEstimatorConfig):
 class SimultaneousPerturbationConfig(GradientEstimatorConfig):
     dA: float
     nb_perturbations: int
-    get_perturbation_matrix: Callable
+    get_perturbation_matrix: PerturbationMatrix
 
     def instantiate(self, nb_params: int) -> SimultaneousPerturbation:
         return SimultaneousPerturbation(self, nb_params)
@@ -129,7 +129,7 @@ class SimultaneousPerturbation(GradientEstimator):
         self.nb_params: int = nb_params
         self.dA: float = config.dA
         self.nb_perturbations: int = config.nb_perturbations
-        self.get_perturbation_matrix: Callable = config.get_perturbation_matrix
+        self.get_perturbation_matrix: PerturbationMatrix = config.get_perturbation_matrix
 
         nb_copies = 3
         self.Ps_extended: Array = np.vstack((np.zeros((1, self.nb_params * nb_copies)),

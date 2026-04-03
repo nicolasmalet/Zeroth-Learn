@@ -6,8 +6,8 @@
 
 /lab/quantum/
 
-get_structure.py
-
 dist/
 build/
 *.egg-info/
+
+*.ipynb

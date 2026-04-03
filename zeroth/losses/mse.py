@@ -6,8 +6,6 @@ from ..types import Array
 
 
 class MSE(Loss):
-    name = "MSE"
-
     @staticmethod
     def compute_loss(Y_pred: Array, Y_true: Array) -> float:
         return float(np.mean((Y_pred - Y_true) ** 2))
@@ -27,7 +25,7 @@ class MSE(Loss):
     @staticmethod
     def compute_gradient_wrt_preactivation(last_layer: Layer, Y_pred: Array, Y_true: Array) -> Array:
         dL_dA = 2 * (Y_pred - Y_true) / Y_true.shape[1]
-        dL_dZ = dL_dA * last_layer.df(last_layer.Z)
+        dL_dZ = dL_dA * last_layer.activation.derivative(last_layer.Z)
         return dL_dZ
 
     def compute_losses_for_zeroth_order(self, pY_pred: Array, Y_true: Array) -> tuple[float, Array]:

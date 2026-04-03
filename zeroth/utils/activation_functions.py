@@ -1,44 +1,46 @@
 import numpy as np
 
+from ..abstract.activation import Activation
 from ..types import Array
 
 
-def relu(x: float | Array) -> float | Array:
-    return np.maximum(x, 0)
+class ReLU(Activation):
+    def __call__(self, x: float | Array) -> float | Array:
+        return np.maximum(x, 0)
+
+    def derivative(self, x: float | Array) -> float | Array:
+        return np.heaviside(x, 0).astype(int)
 
 
-def heaviside(x: float | Array) -> float | Array:
-    return np.heaviside(x, 0).astype(int)
+class Sigmoid(Activation):
+    def __call__(self, x: float | Array) -> float | Array:
+        return 1 / (1 + np.exp(-x))
+
+    def derivative(self, x: float | Array) -> float | Array:
+        s = self.__call__(x)  # On réutilise le __call__ pour optimiser
+        return s * (1 - s)
 
 
-def sigmoid(x: float | Array) -> float | Array:
-    return 1 / (1 + np.exp(-x))
+class Identity(Activation):
+    def __call__(self, x: float | Array) -> float | Array:
+        return x
+
+    def derivative(self, x: float | Array) -> float | Array:
+        return np.ones_like(x)
 
 
-def softmax(x: float | Array) -> float | Array:
-    """
-    Stabilization: We subtract the maximum to avoid overflow (inf)
-    axis=-1 is important for handling:
-    - (batch, output_dim) -> standard calculation
-    - (T, batch, output_dim) -> calculation for zeroth_order
-    """
-    shift_x = x - np.max(x, axis=-1, keepdims=True)
-    e = np.exp(shift_x)
-    return e / np.sum(e, axis=-1, keepdims=True)
+class Softmax(Activation):
+    def __call__(self, x: float | Array) -> float | Array:
+        """
+        Stabilization: We subtract the maximum to avoid overflow (inf)
+        axis=-1 is important for handling:
+        - (batch, output_dim) -> standard calculation
+        - (T, batch, output_dim) -> calculation for zeroth_order
+        """
+        shift_x = x - np.max(x, axis=-1, keepdims=True)
+        e = np.exp(shift_x)
+        return e / np.sum(e, axis=-1, keepdims=True)
 
-
-def sigmoid_derivative(x: float | Array) -> float | Array:
-    s = sigmoid(x)
-    return s * (1 - s)
-
-
-def identity(x: float | Array) -> float | Array:
-    return x
-
-
-get_df = {
-    relu: heaviside,
-    sigmoid: sigmoid_derivative,
-    identity: np.ones_like,
-    softmax: None  # No need to as the CrossEntropy class implements the differentiation
-}
+    def derivative(self, x: float | Array) -> float | Array:
+        # Comme indiqué dans votre code original, pas besoin de dérivée si géré par CrossEntropy
+        raise NotImplementedError("La dérivée de Softmax est généralement combinée avec CrossEntropy.")

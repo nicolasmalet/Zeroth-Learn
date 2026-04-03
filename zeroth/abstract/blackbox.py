@@ -1,20 +1,6 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 
-from ..types import Array, ActivationFunction
-
-
-@dataclass(frozen=True)
-class LayerConfig:
-    input_dim: int
-    output_dim: int
-    f: ActivationFunction
-
-
-@dataclass(frozen=True)
-class NeuralNetworkConfig:
-    name: str
-    layers_config: list[LayerConfig]
+from ..types import Array
 
 
 class BlackBox(ABC):
@@ -24,6 +10,18 @@ class BlackBox(ABC):
     Whether the network uses Backpropagation or zeroth_order (Perturbation), it must implement
     these methods to be compatible with the Model and Experiment classes.
     """
+
+    @abstractmethod
+    def __call__(self, X: Array) -> Array:
+        """Computes the forward pass.
+
+        Args:
+            X (Array): Input data. Shape: (input_dim, batch_size).
+
+        Returns:
+            Array: Network predictions. Shape: (output_dim, batch_size).
+        """
+        pass
 
     @abstractmethod
     def init_params(self, params: dict) -> None:
@@ -40,17 +38,5 @@ class BlackBox(ABC):
 
         Returns:
             dict: (eg: List of Weight matrices, List of Bias vectors).
-        """
-        pass
-
-    @abstractmethod
-    def forward(self, X: Array) -> Array:
-        """Computes the forward pass.
-
-        Args:
-            X (Array): Input data. Shape: (input_dim, batch_size).
-
-        Returns:
-            Array: Network predictions. Shape: (output_dim, batch_size).
         """
         pass

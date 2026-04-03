@@ -1,7 +1,7 @@
 from abc import abstractmethod
 
 from .gradient_estimators import GradientEstimator
-from ..abstract.blackbox import BlackBox
+from ..abstract import BlackBox
 from ..types import Array
 
 

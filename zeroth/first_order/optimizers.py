@@ -70,7 +70,7 @@ class FirstOrderSGD(FirstOrderOptimizer):
             float: The average loss for the processed batch.
         """
         # 1. Forward Pass
-        Y_pred = neural_network.forward(X)
+        Y_pred = neural_network(X)
         last_layer = neural_network.layers[-1]
 
         avg_loss, dL_dZ = loss.compute_losses_for_first_order(last_layer, Y_pred, Y_true)

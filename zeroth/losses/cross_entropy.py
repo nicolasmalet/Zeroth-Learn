@@ -6,8 +6,6 @@ from ..types import Array
 
 
 class CrossEntropy(Loss):
-    name = "CrossEntropy"
-
     @staticmethod
     def compute_loss(Y_pred: Array, Y_true: Array) -> float:
         Y_true_flat = Y_true.squeeze()

@@ -1,10 +1,10 @@
 from .layer import Layer
-from ..abstract.blackbox import BlackBox, NeuralNetworkConfig
+from ..abstract.neural_network import NeuralNetwork, NeuralNetworkConfig
 
 from ..types import Array
 
 
-class FirstOrderNeuralNetwork(BlackBox):
+class FirstOrderNeuralNetwork(NeuralNetwork):
     """Standard Feed-Forward Neural Network consisting of a sequence of Layers.
 
     Attributes:
@@ -13,16 +13,15 @@ class FirstOrderNeuralNetwork(BlackBox):
     """
 
     def __init__(self, config: NeuralNetworkConfig) -> None:
-        self.name: str = config.name
+        super().__init__(config)
         self.layers: list[Layer] = []
-        self.nb_layers: int = 0
-        self.input_dim: int = config.layers_config[0].input_dim
-        self.output_dim: int = config.layers_config[-1].output_dim
         for layer_config in config.layers_config:
             self.layers.append(Layer(layer_config.output_dim,
                                      layer_config.input_dim,
-                                     layer_config.f))
-            self.nb_layers += 1
+                                     layer_config.activation))
+
+    def __call__(self, X: Array) -> Array:
+        return self.forward(X)
 
     def init_params(self, params: dict) -> None:
         Ws = params["Ws"]
@@ -46,5 +45,5 @@ class FirstOrderNeuralNetwork(BlackBox):
             which is required for the backward pass.
         """
         for layer in self.layers:
-            X = layer.forward(X)
+            X = layer(X)
         return X
