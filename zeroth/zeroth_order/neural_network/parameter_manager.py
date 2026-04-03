@@ -81,16 +81,29 @@ class ParameterManager:
         Returns:
             tuple: (Ws_list, Bs_list).
         """
+
+    def iter_pThetas(self, Thetas: Array):
+        """Reconstructs temporary weight/bias matrices from a batch of perturbed Thetas.
+        This is used to perform the forward pass on multiple perturbed models in parallel.
+
+        Args:
+            Thetas (Array): A batch of flat parameter vectors.
+                                 Shape: (nb_perturbations, nb_params)
+
+        Yields pairs of (W, B) views from a batch of perturbed Thetas."""
+
         if Thetas.ndim == 1:
             Thetas = Thetas[None, :]
         N = Thetas.shape[0]
 
-        Ws, Bs = [], []
-        idx = 0
-        for size, shape in zip(self.W_sizes, self.W_shapes):
-            Ws.append(Thetas[:, idx:idx + size].reshape(N, *shape))
-            idx += size
-        for size in self.B_sizes:
-            Bs.append(Thetas[:, idx:idx + size].reshape(N, 1, size))
-            idx += size
-        return Ws, Bs
+        idx_w = 0
+        idx_b = sum(self.W_sizes)
+
+        for w_size, w_shape, b_size in zip(self.W_sizes, self.W_shapes, self.B_sizes):
+            Ws = Thetas[:, idx_w: idx_w + w_size].reshape(N, *w_shape)
+            Bs = Thetas[:, idx_b: idx_b + b_size].reshape(N, 1, b_size)
+
+            yield Ws, Bs
+
+            idx_w += w_size
+            idx_b += b_size

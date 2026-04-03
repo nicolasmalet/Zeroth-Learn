@@ -58,10 +58,9 @@ class ZerothOrderNeuralNetwork(ZerothOrderBlackBox):
                         where T is the number of perturbations.
         """
         pThetas = gradient_estimator.perturb(self.params.Theta)  # Shape: (T, nb_params)
-        Ws, Bs = self.params.from_pThetas(pThetas)  # Ws: list of (T, in, out), Bs: list of (T, 1, out)
 
-        for W, B, f in zip(Ws, Bs, self.params.fs):
-            X = X @ W + B
+        for (Ws, Bs), f in zip(self.params.iter_pThetas(pThetas), self.params.fs):
+            X = X @ Ws + Bs
             X = f(X)
 
         return X

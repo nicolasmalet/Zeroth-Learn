@@ -2,7 +2,7 @@ from typing import Iterator
 
 import numpy as np
 
-from ..types import Array
+from .types import Array
 
 
 class Data:

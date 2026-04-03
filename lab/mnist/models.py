@@ -62,6 +62,17 @@ backprop_s_adam_5epochs: FirstOrderModelConfig = FirstOrderModelConfig(
     nb_epochs=5,
 )
 
+backprop_linear_adam_5epochs: FirstOrderModelConfig = FirstOrderModelConfig(
+    name="backprop_s_adam_5epochs",
+    id={},
+    neural_network_config=nn.linear,
+    optimizer_config=optimizers.first_order_adam,
+    loss=losses.CrossEntropy(),
+    metric=accuracy,
+    batch_size=DEFAULT_BATCH_SIZE,
+    nb_epochs=5,
+)
+
 multiplex_linear_adam: ZerothOrderModelConfig = ZerothOrderModelConfig(
     name="multiplex_linear_adam",
     id={},
