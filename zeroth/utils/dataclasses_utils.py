@@ -1,4 +1,3 @@
-import json
 from dataclasses import is_dataclass, asdict, replace
 from typing import Any
 
@@ -34,13 +33,3 @@ def config_serializer(obj: Any):
         return getattr(obj, "__name__", str(obj))
 
     return str(obj)
-
-
-class Summary:
-    def summary(self) -> None:
-        summary = json.dumps(
-            self,
-            default=config_serializer,
-            indent=4
-        )
-        print(summary)

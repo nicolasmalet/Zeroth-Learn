@@ -12,4 +12,4 @@ class PerturbationMatrix(ABC):
     @abstractmethod
     def __call__(self, nb_perturbation: int, nb_parameters: int) -> Array:
         """Applique la fonction d'activation (forward)."""
-        pass
+        ...

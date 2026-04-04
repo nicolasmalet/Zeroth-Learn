@@ -13,10 +13,11 @@ import pandas as pd
 from .blackbox import BlackBox
 from .loss import Loss
 from .optimizer import Optimizer
+from .summary import Summary
 from ..data import Data
 from ..plot_losses import plot_losses
 from ..types import Array
-from ..utils.dataclasses_utils import config_serializer, Summary
+from ..utils.dataclasses_utils import config_serializer
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -38,10 +39,10 @@ class ModelConfig(ABC, Summary):
 
     @abstractmethod
     def instantiate(self) -> Model:
-        pass
+        ...
 
 
-class Model(ABC, Summary):
+class Model(ABC):
     """
     Base class orchestrating the training and testing loop.
 
@@ -79,7 +80,8 @@ class Model(ABC, Summary):
         print(f"    Training {self.id} Model")
 
         data.batch_size = self.batch_size
-        nb_batches = data.nb_batches
+        nb_batches = len(data)
+
         self.training_loss = np.zeros(self.nb_epochs * nb_batches, dtype=np.float64)
         print_indexes = np.linspace(0, nb_batches - 1, nb_print).astype(int)
 

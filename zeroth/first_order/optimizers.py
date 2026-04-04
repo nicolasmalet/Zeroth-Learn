@@ -8,16 +8,15 @@ import numpy as np
 
 from .layer import Layer
 from .neural_network import FirstOrderNeuralNetwork
-from ..abstract.loss import Loss
-from ..abstract.optimizer import Optimizer
+from ..abstract import Loss, Optimizer, Summary
 from ..types import Array
 
 
 @dataclass(frozen=True)
-class FirstOrderOptimizerConfig(ABC):
+class FirstOrderOptimizerConfig(Summary, ABC):
     @abstractmethod
     def instantiate(self) -> FirstOrderOptimizer:
-        pass
+        ...
 
 
 @dataclass(frozen=True)
@@ -42,7 +41,7 @@ class FirstOrderAdamConfig(FirstOrderSGDConfig):
 class FirstOrderOptimizer(Optimizer):
     @abstractmethod
     def do_descent(self, neural_network, loss, X: Array, Y_true: Array) -> float:
-        pass
+        ...
 
 
 class FirstOrderSGD(FirstOrderOptimizer):

@@ -26,4 +26,4 @@ class Optimizer(ABC):
         Returns:
             float: The average loss for the processed batch.
         """
-        pass
+        ...

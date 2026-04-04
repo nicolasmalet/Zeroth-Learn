@@ -21,7 +21,7 @@ class BlackBox(ABC):
         Returns:
             Array: Network predictions. Shape: (output_dim, batch_size).
         """
-        pass
+        ...
 
     @abstractmethod
     def init_params(self, params: dict) -> None:
@@ -30,7 +30,7 @@ class BlackBox(ABC):
         Args:
             params (tuple): Tuple containing the parameters (eg: weights and biases).
         """
-        pass
+        ...
 
     @abstractmethod
     def get_params(self) -> dict:
@@ -39,4 +39,4 @@ class BlackBox(ABC):
         Returns:
             dict: (eg: List of Weight matrices, List of Bias vectors).
         """
-        pass
+        ...

@@ -9,4 +9,4 @@ class DataCreator(ABC):
 
     @abstractmethod
     def __call__(self) -> Data:
-        pass
+        ...

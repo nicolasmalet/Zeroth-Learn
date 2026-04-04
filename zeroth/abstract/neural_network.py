@@ -2,17 +2,18 @@ from abc import ABC
 from dataclasses import dataclass
 
 from .activation import Activation
+from .summary import Summary
 
 
 @dataclass(frozen=True)
-class LayerConfig:
+class LayerConfig(Summary):
     input_dim: int
     output_dim: int
     activation: Activation
 
 
 @dataclass(frozen=True)
-class NeuralNetworkConfig:
+class NeuralNetworkConfig(Summary):
     name: str
     layers_config: list[LayerConfig]
 

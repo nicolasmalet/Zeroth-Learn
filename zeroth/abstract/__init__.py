@@ -7,3 +7,4 @@ from .model import Model, ModelConfig
 from .neural_network import NeuralNetworkConfig, LayerConfig, NeuralNetwork
 from .optimizer import Optimizer
 from .perturbation_matrix import PerturbationMatrix
+from .summary import Summary

@@ -9,8 +9,8 @@ class ZerothOrderBlackBox(BlackBox):
 
     @abstractmethod
     def forward_perturbed(self, X: Array, gradient_estimator: GradientEstimator) -> Array:
-        pass
+        ...
 
     @abstractmethod
     def update_params(self, grad: Array, learning_rate: float) -> None:
-        pass
+        ...

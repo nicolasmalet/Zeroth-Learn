@@ -7,16 +7,15 @@ import numpy as np
 
 from .gradient_estimators import GradientEstimator
 from .zeroth_order_blackbox import ZerothOrderBlackBox
-from ..abstract.loss import Loss
-from ..abstract.optimizer import Optimizer
+from ..abstract import Loss, Optimizer, Summary
 from ..types import Array
 
 
 @dataclass(frozen=True)
-class ZerothOrderOptimizerConfig(ABC):
+class ZerothOrderOptimizerConfig(Summary, ABC):
     @abstractmethod
     def instantiate(self, gradient_estimator: GradientEstimator) -> ZerothOrderOptimizer:
-        pass
+        ...
 
 
 @dataclass(frozen=True)
@@ -42,16 +41,16 @@ class ZerothOrderAdamConfig(ZerothOrderSGDConfig):
 class ZerothOrderOptimizer(Optimizer):
     @abstractmethod
     def do_descent(self, blackbox: ZerothOrderBlackBox, loss: Loss, X: Array, Y_true: Array) -> float:
-        pass
+        ...
 
     @abstractmethod
     def compute_gradient(self, blackbox: ZerothOrderBlackBox, loss: Loss, X: Array, Y_true: Array) -> tuple[
         float, Array]:
-        pass
+        ...
 
     @abstractmethod
     def update_params(self, blackbox: ZerothOrderBlackBox, gradient: Array) -> None:
-        pass
+        ...
 
 
 class ZerothOrderSGD(ZerothOrderOptimizer):

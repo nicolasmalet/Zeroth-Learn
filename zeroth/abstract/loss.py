@@ -15,7 +15,7 @@ class Loss(ABC):
         :param Y_true: shape (batch, out)
         :return: avg loss shape: float
         """
-        pass
+        ...
 
     @staticmethod
     @abstractmethod
@@ -25,7 +25,7 @@ class Loss(ABC):
         :param Y_true: shape (batch, out)
         :return: batch loss shape (batch, )
         """
-        pass
+        ...
 
     @staticmethod
     @abstractmethod
@@ -35,7 +35,7 @@ class Loss(ABC):
         :param Y_true: (batch, out)
         :return: perturbed loss (T, nb_params)
         """
-        pass
+        ...
 
     @staticmethod
     @abstractmethod
@@ -46,13 +46,13 @@ class Loss(ABC):
         :param Y_true: shape (batch, out)
         :return: batch loss shape (batch, )
         """
-        pass
+        ...
 
     @abstractmethod
     def compute_losses_for_zeroth_order(self, pY_pred: Array, Y_true: Array) -> tuple[float, Array]:
-        pass
+        ...
 
     @abstractmethod
     def compute_losses_for_first_order(self, last_layer, Y_pred: Array, Y_true: Array) -> tuple[
         float, Array]:
-        pass
+        ...

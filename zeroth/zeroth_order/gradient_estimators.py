@@ -5,15 +5,15 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from ..abstract.perturbation_matrix import PerturbationMatrix
+from ..abstract import PerturbationMatrix, Summary
 from ..types import Array
 
 
 @dataclass(frozen=True)
-class GradientEstimatorConfig(ABC):
+class GradientEstimatorConfig(Summary, ABC):
     @abstractmethod
     def instantiate(self, nb_params: int) -> GradientEstimator:
-        pass
+        ...
 
 
 @dataclass(frozen=True)

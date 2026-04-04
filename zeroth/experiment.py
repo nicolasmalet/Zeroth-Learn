@@ -3,14 +3,14 @@ from __future__ import annotations
 import itertools
 import os
 from dataclasses import dataclass, replace
-from typing import Callable, Union
+from typing import Union
 
 import pandas as pd
 
-from .abstract import Model, ModelConfig
+from .abstract import Model, ModelConfig, DataCreator, Summary
 from .data import Data
 from .plot_losses import plot_losses
-from .utils.dataclasses_utils import get_name, set_value_by_path, Summary
+from .utils.dataclasses_utils import get_name, set_value_by_path
 
 
 @dataclass(frozen=True)
@@ -26,7 +26,7 @@ class ExperimentConfig(Summary):
     title: str
     base_model: ModelConfig
     variations: list[VariationConfig]
-    create_data: Callable
+    data_creator: DataCreator
     plot_dimension: int
     smooth_fraction: float
 
@@ -34,7 +34,7 @@ class ExperimentConfig(Summary):
         return Experiment(self)
 
 
-class Experiment(Summary):
+class Experiment:
     """Manages the full lifecycle of a deep learning experiment.
 
     It handles data loading, model instantiation, training loops, and results visualization.
@@ -52,7 +52,7 @@ class Experiment(Summary):
         self.title: str = config.title
         self.base_model_config: ModelConfig = config.base_model
         self.models: list[Model] = generate_models(config.base_model, config.variations)
-        self.data: Data = config.create_data()
+        self.data: Data = config.data_creator()
         self.plot_dimension: int = config.plot_dimension
         self.smooth_fraction: float = config.smooth_fraction
 
