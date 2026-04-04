@@ -30,7 +30,7 @@ class ParameterManager:
         self.nb_params: int = 0
         self.Theta: Array = np.array([])
 
-    def push_layer(self, output_dim: int, input_dim: int | None = None, f: Activation = ReLU()) -> None:
+    def push_layer(self, input_dim: int, output_dim: int, f: Activation = ReLU()) -> None:
         """Adds a layer to the structure and updates the flat Theta vector.
 
         Args:

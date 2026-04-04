@@ -6,21 +6,20 @@ from .summary import Summary
 
 
 @dataclass(frozen=True)
-class LayerConfig(Summary):
-    input_dim: int
-    output_dim: int
-    activation: Activation
+class NetworkArchitecture(Summary):
+    hidden_dims: list[int]
+    activations: list[Activation]
 
 
 @dataclass(frozen=True)
 class NeuralNetworkConfig(Summary):
     name: str
-    layers_config: list[LayerConfig]
+    architecture: NetworkArchitecture
 
 
 class NeuralNetwork(ABC):
-    def __init__(self, config: NeuralNetworkConfig):
+    def __init__(self, config: NeuralNetworkConfig, input_dim: int, output_dim: int):
         self.name: str = config.name
-        self.nb_layers: int = len(config.layers_config)
-        self.input_dim: int = config.layers_config[0].input_dim
-        self.output_dim: int = config.layers_config[-1].output_dim
+        self.nb_layers: int = len(config.architecture.activations)
+        self.input_dim: int = input_dim
+        self.output_dim: int = output_dim

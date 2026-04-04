@@ -1,6 +1,5 @@
 from .layer import Layer
 from ..abstract.neural_network import NeuralNetwork, NeuralNetworkConfig
-
 from ..types import Array
 
 
@@ -12,13 +11,16 @@ class FirstOrderNeuralNetwork(NeuralNetwork):
         nb_layers (int): Number of layers.
     """
 
-    def __init__(self, config: NeuralNetworkConfig) -> None:
-        super().__init__(config)
+    def __init__(self, config: NeuralNetworkConfig, input_dim: int, output_dim: int) -> None:
+        super().__init__(config, input_dim, output_dim)
         self.layers: list[Layer] = []
-        for layer_config in config.layers_config:
-            self.layers.append(Layer(layer_config.output_dim,
-                                     layer_config.input_dim,
-                                     layer_config.activation))
+        print(input_dim, output_dim)
+        network_dimensions = [input_dim] + config.architecture.hidden_dims + [output_dim]
+
+        for i in range(self.nb_layers):
+            self.layers.append(Layer(network_dimensions[i],
+                                     network_dimensions[i + 1],
+                                     config.architecture.activations[i]))
 
     def __call__(self, X: Array) -> Array:
         return self.forward(X)

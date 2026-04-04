@@ -38,7 +38,7 @@ class ModelConfig(ABC, Summary):
     nb_epochs: int = 1
 
     @abstractmethod
-    def instantiate(self) -> Model:
+    def instantiate(self, data: Data) -> Model:
         ...
 
 
@@ -53,11 +53,12 @@ class Model(ABC):
     neural_network: BlackBox
     optimizer: Optimizer
 
-    def __init__(self, config: ModelConfig):
+    def __init__(self, config: ModelConfig, data: Data):
         self.config = config
 
         self.name: str = config.name
         self.id: dict = config.id
+        self.data: Data = data
         self.loss: Loss = config.loss
         self.metric: Callable = config.metric
         self.batch_size: int = config.batch_size
@@ -67,11 +68,10 @@ class Model(ABC):
         self.test_loss: float = float("nan")
         self.test_accuracy: float = float("nan")
 
-    def train(self, data: Data, nb_print: int = 0) -> None:
+    def train(self, nb_print: int = 0) -> None:
         """Runs the training loop over the dataset.
 
         Args:
-            data (Data): The dataset object containing train/test sets.
             nb_print (int): Number of progress updates to print per epoch.
 
         Returns:
@@ -79,30 +79,30 @@ class Model(ABC):
         """
         print(f"    Training {self.id} Model")
 
-        data.batch_size = self.batch_size
-        nb_batches = len(data)
+        self.data.batch_size = self.batch_size
+        nb_batches = len(self.data)
 
         self.training_loss = np.zeros(self.nb_epochs * nb_batches, dtype=np.float64)
         print_indexes = np.linspace(0, nb_batches - 1, nb_print).astype(int)
 
         for epoch_idx in range(self.nb_epochs):
             print(f"        epoch n°{epoch_idx + 1} out of {self.nb_epochs}")
-            data.permutation()
-            data.batch_size = self.batch_size
-            for batch_idx, (X_train, Y_train) in enumerate(data):
+            self.data.permutation()
+            self.data.batch_size = self.batch_size
+            for batch_idx, (X_train, Y_train) in enumerate(self.data):
                 avg_loss = self.optimizer.do_descent(self.neural_network, self.loss, X_train, Y_train)
                 self.training_loss[epoch_idx * nb_batches + batch_idx] = avg_loss
 
                 if batch_idx in print_indexes:
                     print(f"            batch n°{batch_idx + 1} out of {nb_batches}, "
                           f"loss : {np.round(self.training_loss[epoch_idx * nb_batches + batch_idx], 3)}")
-            self.test(data)
+            self.test()
 
     def plot_loss(self, save_path: str = None, smooth_fraction: float = 0) -> None:
         plot_losses(dimension=0, models=[self], title=self.name, save_path=save_path, smooth_fraction=smooth_fraction)
 
-    def test(self, data: Data) -> None:
-        X_test, Y_true = data.X_test, data.Y_test  # (in, batch), (out, batch)
+    def test(self) -> None:
+        X_test, Y_true = self.data.X_test, self.data.Y_test  # (in, batch), (out, batch)
         Y_pred = self.neural_network(X_test)  # (out, batch)
 
         self.test_accuracy = self.metric(Y_pred, Y_true)

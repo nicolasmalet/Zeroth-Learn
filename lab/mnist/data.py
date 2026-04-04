@@ -22,6 +22,6 @@ class DataCreatorMnist(DataCreator):
         X_train = (X_train - mean) / std
         X_test = (X_test - mean) / std
 
-        data_mnist = Data(X_train, Y_train, X_test, Y_test)
+        data_mnist = Data(X_train, Y_train, X_test, Y_test, 10)
 
         return data_mnist

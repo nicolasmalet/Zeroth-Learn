@@ -15,7 +15,7 @@ class Layer:
         A (Array): Activated output. Shape (batch_size, output_dim).
     """
 
-    def __init__(self, output_dim: int, input_dim: int, activation: Activation) -> None:
+    def __init__(self, input_dim: int, output_dim: int, activation: Activation) -> None:
         """Initializes the layer with random weights and zeros biases.
 
         Args:

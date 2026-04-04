@@ -51,12 +51,12 @@ class Experiment:
         self.name: str = config.name
         self.title: str = config.title
         self.base_model_config: ModelConfig = config.base_model
-        self.models: list[Model] = generate_models(config.base_model, config.variations)
-        self.data: Data = config.data_creator()
+        self.data = config.data_creator()
         self.plot_dimension: int = config.plot_dimension
         self.smooth_fraction: float = config.smooth_fraction
-
         self.save_dir = os.path.join("experiments", self.name)
+
+        self.models: list[Model] = generate_models(config.base_model, config.variations, self.data)
 
     def launch(self, do_train: bool, do_test: bool, nb_print_train: int, do_plot_train: bool, do_save: bool) -> None:
         """
@@ -80,7 +80,7 @@ class Experiment:
 
     def train(self, nb_print: int, do_plot: bool, do_save: bool):
         for model in self.models:
-            model.train(self.data, nb_print)
+            model.train(nb_print)
 
         if do_plot:
             plot_path = None
@@ -96,7 +96,7 @@ class Experiment:
 
     def test(self) -> None:
         for model in self.models:
-            model.test(self.data)
+            model.test()
 
     def save_df(self) -> None:
         """
@@ -129,7 +129,7 @@ class Experiment:
             model.save_loss(loss_path)
 
 
-def generate_models(base_model: ModelConfig, variations: list[VariationConfig]) -> list[Model]:
+def generate_models(base_model: ModelConfig, variations: list[VariationConfig], data: Data) -> list[Model]:
     models = []
 
     values_lists = [v.values for v in variations]
@@ -146,6 +146,6 @@ def generate_models(base_model: ModelConfig, variations: list[VariationConfig]) 
                 current_model = set_value_by_path(current_model, path, val)
 
         current_model = replace(current_model, id=id_)
-        models.append(current_model.instantiate())
+        models.append(current_model.instantiate(data))
 
     return models

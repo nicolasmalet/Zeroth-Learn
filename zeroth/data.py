@@ -6,13 +6,16 @@ from .types import Array
 
 
 class Data:
-    def __init__(self, raw_X_train: Array, raw_Y_train: Array, raw_X_test: Array, raw_Y_test: Array) -> None:
+    def __init__(self, raw_X_train: Array, raw_Y_train: Array, raw_X_test: Array, raw_Y_test: Array, nb_class : int = 0) -> None:
         self.raw_X_train: Array = raw_X_train
         self.raw_Y_train: Array = raw_Y_train
         self.X_test: Array = raw_X_test
         self.Y_test: Array = raw_Y_test
 
         self.nb_data: int = raw_X_train.shape[0]
+        self.input_dim: int = self.raw_X_train.shape[1]
+        self.output_dim: int = self.raw_Y_train.shape[1] if nb_class == 0 else nb_class
+
         self.batch_size: int | None = None
 
         self.indices: np.ndarray = np.arange(self.nb_data)
