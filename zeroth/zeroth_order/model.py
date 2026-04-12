@@ -23,7 +23,8 @@ class ZerothOrderModel(Model):
     def __init__(self, config: ZerothOrderModelConfig, data: Data) -> None:
         super().__init__(config, data)
 
-        self.neural_network: ZerothOrderNeuralNetwork = ZerothOrderNeuralNetwork(config.neural_network_config, data.input_dim, data.output_dim)
+        self.neural_network: ZerothOrderNeuralNetwork = ZerothOrderNeuralNetwork(config.neural_network_config,
+                                                                                 data.input_dim, data.output_dim)
         nb_params = self.neural_network.params.nb_params
         self.gradient_estimator: GradientEstimator = config.gradient_estimator_config.instantiate(nb_params)
         self.optimizer: ZerothOrderOptimizer = config.optimizer_config.instantiate(self.gradient_estimator)

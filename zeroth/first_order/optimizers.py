@@ -30,6 +30,7 @@ class FirstOrderSGDConfig(FirstOrderOptimizerConfig):
 
 @dataclass(frozen=True)
 class FirstOrderAdamConfig(FirstOrderSGDConfig):
+    name = "Adam"
     beta1: float
     beta2: float
     epsilon: float
@@ -45,8 +46,6 @@ class FirstOrderOptimizer(Optimizer):
 
 
 class FirstOrderSGD(FirstOrderOptimizer):
-    """Abstract base class for gradient descent optimizers using first_order."""
-
     def __init__(self, config: FirstOrderSGDConfig) -> None:
         self.learning_rate: float = config.learning_rate
 
@@ -97,13 +96,11 @@ class FirstOrderSGD(FirstOrderOptimizer):
 
 
 class FirstOrderAdam(FirstOrderSGD):
-    name = "Adam"
     """Implements the Adam optimization algorithm.
 
     Adam (Adaptive Moment Estimation) stores moving averages of the gradients (m)
     and squared gradients (v) to adapt the learning rate for each parameter.
     """
-
     def __init__(self, config: FirstOrderAdamConfig) -> None:
         super().__init__(config)
         self.beta1: float = config.beta1

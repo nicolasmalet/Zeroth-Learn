@@ -16,12 +16,12 @@ class ZerothOrderNeuralNetwork(NeuralNetwork, ZerothOrderBlackBox):
         super().__init__(config, input_dim, output_dim)
         self.params: ParameterManager = ParameterManager()
 
-        network_dimensions = [input_dim] + config.architecture.hidden_dims + [output_dim]
+        network_dimensions = [input_dim] + config.hidden_dims + [output_dim]
 
         for i in range(self.nb_layers):
             self.params.push_layer(network_dimensions[i],
                                    network_dimensions[i + 1],
-                                   config.architecture.activations[i])
+                                   config.activations[i])
 
     def __call__(self, X: Array) -> Array:
         return self.forward(X)

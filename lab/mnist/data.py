@@ -6,6 +6,7 @@ from zeroth.data import Data
 
 
 class DataCreatorMnist(DataCreator):
+    task_name: str = "mnist"
     def __call__(self) -> Data:
         mnist = fetch_openml('mnist_784', version=1)
 

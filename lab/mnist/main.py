@@ -1,7 +1,12 @@
 from . import experiments
 
 
-def main(do_train: bool, do_test: bool, nb_print_train: int, do_plot_train: bool, do_save: bool) -> None:
-    experiment = experiments.nb_perturbations.instantiate()  # choose the experiment to run
-    experiment.launch(do_train, do_test, nb_print_train,
-                      do_plot_train, do_save)
+def main() -> None:
+    experiment = experiments.adam_vs_sgd.instantiate()  # choose the experiment to run
+    #experiment.train_models(nb_print=3)
+    experiment.plot_losses(title="",
+                           plot_dimension=0,
+                           smooth_fraction=0.05)
+    experiment.plot_losses(title="",
+                           plot_dimension=1,
+                           smooth_fraction=0.05)

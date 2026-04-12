@@ -6,7 +6,8 @@ from .types import Array
 
 
 class Data:
-    def __init__(self, raw_X_train: Array, raw_Y_train: Array, raw_X_test: Array, raw_Y_test: Array, nb_class : int = 0) -> None:
+    def __init__(self, raw_X_train: Array, raw_Y_train: Array, raw_X_test: Array, raw_Y_test: Array,
+                 nb_class: int = 0) -> None:
         self.raw_X_train: Array = raw_X_train
         self.raw_Y_train: Array = raw_Y_train
         self.X_test: Array = raw_X_test

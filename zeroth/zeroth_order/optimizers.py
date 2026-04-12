@@ -97,14 +97,13 @@ class ZerothOrderSGD(ZerothOrderOptimizer):
 
 
 class ZerothOrderAdam(ZerothOrderSGD):
-    name = "Adam"
     """Adaptive Moment Estimation (Adam) adapted for zeroth_order gradient estimates.
 
     Note:
         Since zeroth_order gradients are noisy approximations, Adam is often very effective
         as its momentum terms (m, v) help smooth out the noise over time.
     """
-
+    name = "Adam"
     def __init__(self, config: ZerothOrderAdamConfig, gradient_estimator: GradientEstimator) -> None:
         self.beta1: float = config.beta1
         self.beta2: float = config.beta2

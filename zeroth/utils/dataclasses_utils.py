@@ -1,4 +1,4 @@
-from dataclasses import is_dataclass, asdict, replace
+from dataclasses import replace
 from typing import Any
 
 
@@ -26,9 +26,17 @@ def set_value_by_path(obj: Any, path: str, value: Any) -> Any:
     return replace(obj, **{field: value})
 
 
+from dataclasses import is_dataclass, fields
+
+
 def config_serializer(obj: Any):
     if is_dataclass(obj):
-        return asdict(obj)
+        data = {f.name: getattr(obj, f.name) for f in fields(obj)}
+        return {obj.__class__.__name__: data}
+
+    if hasattr(obj, "__class__") and obj.__class__.__module__ != "builtins":
+        return repr(obj)
+
     if callable(obj):
         return getattr(obj, "__name__", str(obj))
 

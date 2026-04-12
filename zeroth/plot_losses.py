@@ -11,7 +11,7 @@ from matplotlib.axes import Axes
 from .types import Array
 
 if TYPE_CHECKING:
-    from .abstract.model import Model
+    from .abstract.model import ModelRecord
 
 
 def set_style() -> None:
@@ -80,7 +80,7 @@ def smooth_curve(loss: Array, window_length: int) -> Array:
     return np.exp(pd.Series(np.log(loss)).ewm(span=window_length, adjust=True).mean())
 
 
-def plot_0d(models: list[Model], title: str, smooth_fraction: float = 50) -> None:
+def plot_0d(models: list[ModelRecord], title: str, smooth_fraction: float = 50) -> plt.Figure:
     """
     Plots a single graph overlaying multiple models that share the same hyperparameters.
     """
@@ -105,14 +105,17 @@ def plot_0d(models: list[Model], title: str, smooth_fraction: float = 50) -> Non
         fig.legend(handles, labels, loc='lower center', ncol=len(handles),
                    bbox_to_anchor=(0.5, 0), frameon=False, fontsize=9)
 
+    return fig
 
-def plot_1d(models: list[Model], title: str, key: str, smooth_fraction: float = 50) -> None:
+
+def plot_1d(models: list[ModelRecord], title: str, key: str, smooth_fraction: float = 50) -> plt.Figure:
     """
     Plots a row of subplots, varying one hyperparameter (key) across columns.
     """
-
+    print(len(models), [model.id for model in models])
     cols = list(dict.fromkeys([m.id[key] for m in models]))
     n_models = len(cols)
+    print(cols, n_models)
     fig, axs = plt.subplots(1, n_models, figsize=(4.5 * n_models, 3.5), sharey=True)
 
     for i, val in enumerate(cols):
@@ -141,8 +144,10 @@ def plot_1d(models: list[Model], title: str, key: str, smooth_fraction: float = 
         fig.legend(handles, labels, loc='lower center', ncol=len(handles),
                    bbox_to_anchor=(0.5, 0), frameon=False, fontsize=9)
 
+    return fig
 
-def plot_2d(models: list[Model], title: str, row_key: str, col_key: str, smooth_fraction: float) -> None:
+
+def plot_2d(models: list[ModelRecord], title: str, row_key: str, col_key: str, smooth_fraction: float) -> plt.Figure:
     """
     Plots a grid of subplots varying two hyperparameters: one across rows, one across columns.
 
@@ -191,32 +196,30 @@ def plot_2d(models: list[Model], title: str, row_key: str, col_key: str, smooth_
     fig.text(0.5, 0.07, "Training steps", ha='center', fontsize=10)
     fig.text(0.02, 0.5, "Training loss", va='center', rotation='vertical', fontsize=10)
 
+    return fig
 
-def plot_losses(dimension: int, models: list[Model], title: str, smooth_fraction: float, save_path: str = None) -> None:
+
+def plot_losses(title: str, dimension: int, models: list[ModelRecord], smooth_fraction: float) -> plt.Figure:
     """
     Main entry point for plotting. Automatically detects if the plot should be 0D, 1D, or 2D
     based on the number of variation parameters.
 
     Args:
+        title (str): The title of the plot.
         dimension (int): dimension of the plot
         models (list): List of model objects.
-        title (str): The title of the plot.
-        save_path (str, optional): File path to save the figure (e.g., 'plot.png').
         smooth_fraction (int): span for smoothing.
     """
     set_style()
 
     keys = list(models[0].id.keys())
 
-    if dimension == 0:
-        plot_0d(models, title, smooth_fraction)
-    elif dimension == 1:
-        plot_1d(models, title, keys[0], smooth_fraction)
-    else:
-        plot_2d(models, title, keys[0], keys[1], smooth_fraction)
+    match dimension:
+        case 0:
+            fig = plot_0d(models, title, smooth_fraction)
+        case 1:
+            fig = plot_1d(models, title, keys[0], smooth_fraction)
+        case _:
+            fig = plot_2d(models, title, keys[0], keys[1], smooth_fraction)
 
-    if save_path:
-        plt.savefig(save_path, dpi=300, bbox_inches="tight")
-        print(f"Plot saved to {save_path}")
-
-    plt.show()
+    return fig

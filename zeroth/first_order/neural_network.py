@@ -13,14 +13,14 @@ class FirstOrderNeuralNetwork(NeuralNetwork):
 
     def __init__(self, config: NeuralNetworkConfig, input_dim: int, output_dim: int) -> None:
         super().__init__(config, input_dim, output_dim)
+
         self.layers: list[Layer] = []
-        print(input_dim, output_dim)
-        network_dimensions = [input_dim] + config.architecture.hidden_dims + [output_dim]
+        network_dimensions = [input_dim] + config.hidden_dims + [output_dim]
 
         for i in range(self.nb_layers):
             self.layers.append(Layer(network_dimensions[i],
                                      network_dimensions[i + 1],
-                                     config.architecture.activations[i]))
+                                     config.activations[i]))
 
     def __call__(self, X: Array) -> Array:
         return self.forward(X)

@@ -5,6 +5,7 @@ import os
 from dataclasses import dataclass, replace
 from typing import Union
 
+import matplotlib.pyplot as plt
 import pandas as pd
 
 from .abstract import Model, ModelConfig, DataCreator, Summary
@@ -23,12 +24,10 @@ class VariationConfig:
 @dataclass(frozen=True)
 class ExperimentConfig(Summary):
     name: str
-    title: str
     base_model: ModelConfig
-    variations: list[VariationConfig]
     data_creator: DataCreator
-    plot_dimension: int
-    smooth_fraction: float
+    variations: list[VariationConfig]
+
 
     def instantiate(self) -> Experiment:
         return Experiment(self)
@@ -41,92 +40,66 @@ class Experiment:
 
     Attributes:
         name (str): Name of the experiment
-        title (str): Title of the graphs
         models (list[Model]): List of models to train/compare
         data (Data): The dataset wrapper.
     """
 
-    def __init__(self, config: ExperimentConfig):
+    ACCURACY_FILE: str = "models_accuracy.csv"
+    CONFIG_FILE: str = "config.txt"
+
+    def __init__(self, config: ExperimentConfig) -> None:
         self.config = config
         self.name: str = config.name
-        self.title: str = config.title
         self.base_model_config: ModelConfig = config.base_model
         self.data = config.data_creator()
-        self.plot_dimension: int = config.plot_dimension
-        self.smooth_fraction: float = config.smooth_fraction
-        self.save_dir = os.path.join("experiments", self.name)
-
         self.models: list[Model] = generate_models(config.base_model, config.variations, self.data)
 
-    def launch(self, do_train: bool, do_test: bool, nb_print_train: int, do_plot_train: bool, do_save: bool) -> None:
-        """
-        Executes the experiment pipeline.
-
-        Args:
-            do_train (bool): Whether to run the training loop.
-            do_test (bool): Whether to run evaluation on test set.
-            nb_print_train (int): Number of logs to print during training.
-            do_plot_train (bool): If True, plots loss curves after training.
-            do_save (bool): if True, saves the plots and dataframes
-        """
-        print(f"### Launching Experiment : {self.name} ###")
-        if do_train:
-            self.train(nb_print=nb_print_train, do_plot=do_plot_train, do_save=do_save)
-        if do_test:
-            self.test()
-        if do_save:
-            self.save_df()
-            self.save_weights()
-
-    def train(self, nb_print: int, do_plot: bool, do_save: bool):
+    def train_models(self, nb_print: int) -> None:
+        print(f"Training Models")
         for model in self.models:
             model.train(nb_print)
 
-        if do_plot:
-            plot_path = None
-            if do_save:
-                os.makedirs(self.save_dir, exist_ok=True)
-                plot_path = os.path.join(self.save_dir, "training_losses.png")
+    def plot_losses(self, title: str, plot_dimension: int, smooth_fraction: float = 0) -> plt.Figure:
+        fig = plot_losses(title=title,
+                          dimension=plot_dimension,
+                          models=self.models,
+                          smooth_fraction=smooth_fraction)
 
-            plot_losses(dimension=self.plot_dimension,
-                        models=self.models,
-                        title=self.title,
-                        smooth_fraction=self.smooth_fraction,
-                        save_path=plot_path)
+        plt.close(fig)
 
-    def test(self) -> None:
+        return fig
+
+    def test_models(self) -> None:
+        print(f"Testing Models")
         for model in self.models:
             model.test()
 
-    def save_df(self) -> None:
+    def save_df(self, save_dir: str) -> None:
         """
         saves the models parameters and their args
         """
-        os.makedirs(self.save_dir, exist_ok=True)
-        print(f"    Saving results to: {self.save_dir}")
+        os.makedirs(save_dir, exist_ok=True)
+        print(f"    Saving results to: {save_dir}")
 
         data = [model.id | {"test_loss": model.test_loss, "test_accuracy": model.test_accuracy}
                 for model in self.models]
 
         df = pd.DataFrame(data)
-        df.to_csv(os.path.join(self.save_dir, "models_accuracy.csv"), index_label="iteration")
+        df.to_csv(os.path.join(save_dir, self.ACCURACY_FILE), index_label="iteration")
 
-    def save_weights(self) -> None:
-        weights_dir = os.path.join(self.save_dir, "models")
-        os.makedirs(weights_dir, exist_ok=True)
-        print(f"    Saving weights to: {weights_dir}")
+    def save_weights(self, save_dir: str) -> None:
+        for i, model in enumerate(self.models):
+            save_path = os.path.join(save_dir, model.name)
+            model.save_weights(save_path)
+
+    def save_configs(self, save_dir: str) -> None:
+
+        config_path = os.path.join(save_dir, self.CONFIG_FILE)
+        self.config.save(config_path)
 
         for i, model in enumerate(self.models):
-            model_dir = os.path.join(weights_dir, f"{model.get_folder_name()}")
-
-            weights_path = os.path.join(model_dir, "weights.pkl")
-            model.save_weights(weights_path)
-
-            config_path = os.path.join(model_dir, "config.json")
-            model.save_config(config_path)
-
-            loss_path = os.path.join(model_dir, "training_loss.csv")
-            model.save_loss(loss_path)
+            save_path = os.path.join(save_dir, model.name)
+            model.config.save(save_path)
 
 
 def generate_models(base_model: ModelConfig, variations: list[VariationConfig], data: Data) -> list[Model]:
@@ -139,7 +112,6 @@ def generate_models(base_model: ModelConfig, variations: list[VariationConfig], 
         current_model = base_model
 
         for var_config, current_vals in zip(variations, combination):
-
             id_[var_config.name] = get_name(current_vals[0])
 
             for path, val in zip(var_config.param, current_vals):

@@ -7,6 +7,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Callable
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
@@ -17,8 +18,36 @@ from .summary import Summary
 from ..data import Data
 from ..plot_losses import plot_losses
 from ..types import Array
-from ..utils.dataclasses_utils import config_serializer
 
+
+@dataclass
+class ModelRecord:
+    name: str
+    id: dict
+    training_loss: Array
+
+    @classmethod
+    def load(cls, model_dir_path: str):
+        config_path = os.path.join(model_dir_path, "config.json")
+        with open(config_path, "r") as f:
+            config = json.load(f)
+
+        loss_path = os.path.join(model_dir_path, LOSS_FILE)
+        df_loss = pd.read_csv(loss_path)
+
+        return cls(
+            id=config.get("id", {}),
+            name=config.get("name", "Unknown"),
+            training_loss=df_loss["training_loss"].values
+        )
+
+    def plot_loss(self, smooth_fraction: float = 0.05) -> plt.Figure:
+        fig = plot_losses(dimension=0,
+                          models=[self],
+                          title=self.name,
+                          smooth_fraction=smooth_fraction)
+        plt.close(fig)
+        return fig
 
 @dataclass(frozen=True, kw_only=True)
 class ModelConfig(ABC, Summary):
@@ -42,13 +71,17 @@ class ModelConfig(ABC, Summary):
         ...
 
 
-class Model(ABC):
+class Model(ABC, ModelRecord):
     """
     Base class orchestrating the training and testing loop.
 
     This class abstracts the abstract logic for training
     regardless of the underlying engine (Backpropagation or zeroth_order).
     """
+
+    LOSS_FILE: str = "training_loss.csv"
+    WEIGHTS_FILE: str = "weights.pkl"
+    CONFIG_FILE: str = "config.json"
 
     neural_network: BlackBox
     optimizer: Optimizer
@@ -83,6 +116,8 @@ class Model(ABC):
         nb_batches = len(self.data)
 
         self.training_loss = np.zeros(self.nb_epochs * nb_batches, dtype=np.float64)
+
+        nb_print = nb_batches if nb_print == -1 else nb_print
         print_indexes = np.linspace(0, nb_batches - 1, nb_print).astype(int)
 
         for epoch_idx in range(self.nb_epochs):
@@ -98,9 +133,6 @@ class Model(ABC):
                           f"loss : {np.round(self.training_loss[epoch_idx * nb_batches + batch_idx], 3)}")
             self.test()
 
-    def plot_loss(self, save_path: str = None, smooth_fraction: float = 0) -> None:
-        plot_losses(dimension=0, models=[self], title=self.name, save_path=save_path, smooth_fraction=smooth_fraction)
-
     def test(self) -> None:
         X_test, Y_true = self.data.X_test, self.data.Y_test  # (in, batch), (out, batch)
         Y_pred = self.neural_network(X_test)  # (out, batch)
@@ -110,26 +142,23 @@ class Model(ABC):
 
         print(f"    {self.id} accuracy : {self.test_accuracy}, loss : {self.test_loss}")
 
-    def save_weights(self, save_path: str) -> None:
-        os.makedirs(os.path.dirname(save_path), exist_ok=True)
-        params_dict = self.neural_network.get_params()
-        with open(save_path, 'wb') as f:
-            pickle.dump(params_dict, f)
-
-    def save_config(self, save_path: str) -> None:
-        os.makedirs(os.path.dirname(save_path), exist_ok=True)
-        with open(save_path, "w") as f:
-            json.dump(self.config, f, default=config_serializer, indent=4)
-
-    def save_loss(self, save_path: str) -> None:
-        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    def save_loss(self, save_dir: str) -> None:
+        save_path = os.path.join(save_dir, self.LOSS_FILE)
+        os.makedirs(os.path.dirname(save_dir), exist_ok=True)
         df = pd.DataFrame({
             'training_loss': self.training_loss
         })
         df.to_csv(save_path)
 
-    def load_weights(self, load_path: str) -> None:
+    def save_weights(self, save_dir: str) -> None:
+        save_path = os.path.join(save_dir, self.WEIGHTS_FILE)
+        params_dict = self.neural_network.get_params()
+        with open(save_path, 'wb') as f:
+            pickle.dump(params_dict, f)
+
+    def load_weights(self, load_dir: str) -> None:
         """Restaure les paramètres depuis un fichier pickle."""
+        load_path = os.path.join(load_dir, self.WEIGHTS_FILE)
         with open(load_path, 'rb') as f:
             params_dict = pickle.load(f)
 

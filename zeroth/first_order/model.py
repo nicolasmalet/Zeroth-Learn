@@ -21,5 +21,6 @@ class FirstOrderModel(Model):
     def __init__(self, config: FirstOrderModelConfig, data: Data) -> None:
         super().__init__(config, data)
 
-        self.neural_network: FirstOrderNeuralNetwork = FirstOrderNeuralNetwork(config.neural_network_config, data.input_dim, data.output_dim)
+        self.neural_network: FirstOrderNeuralNetwork = FirstOrderNeuralNetwork(config.neural_network_config,
+                                                                               data.input_dim, data.output_dim)
         self.optimizer: FirstOrderOptimizer = config.optimizer_config.instantiate()
