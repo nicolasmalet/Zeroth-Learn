@@ -11,7 +11,7 @@ from matplotlib.axes import Axes
 from .types import Array
 
 if TYPE_CHECKING:
-    from .abstract.model import ModelRecord
+    from .abstract.model import Model
 
 
 def set_style() -> None:
@@ -80,7 +80,7 @@ def smooth_curve(loss: Array, window_length: int) -> Array:
     return np.exp(pd.Series(np.log(loss)).ewm(span=window_length, adjust=True).mean())
 
 
-def plot_0d(models: list[ModelRecord], title: str, smooth_fraction: float = 50) -> plt.Figure:
+def plot_0d(models: list[Model], title: str, smooth_fraction: float = 50) -> plt.Figure:
     """
     Plots a single graph overlaying multiple models that share the same hyperparameters.
     """
@@ -108,7 +108,7 @@ def plot_0d(models: list[ModelRecord], title: str, smooth_fraction: float = 50) 
     return fig
 
 
-def plot_1d(models: list[ModelRecord], title: str, key: str, smooth_fraction: float = 50) -> plt.Figure:
+def plot_1d(models: list[Model], title: str, key: str, smooth_fraction: float = 50) -> plt.Figure:
     """
     Plots a row of subplots, varying one hyperparameter (key) across columns.
     """
@@ -147,7 +147,7 @@ def plot_1d(models: list[ModelRecord], title: str, key: str, smooth_fraction: fl
     return fig
 
 
-def plot_2d(models: list[ModelRecord], title: str, row_key: str, col_key: str, smooth_fraction: float) -> plt.Figure:
+def plot_2d(models: list[Model], title: str, row_key: str, col_key: str, smooth_fraction: float) -> plt.Figure:
     """
     Plots a grid of subplots varying two hyperparameters: one across rows, one across columns.
 
@@ -199,7 +199,7 @@ def plot_2d(models: list[ModelRecord], title: str, row_key: str, col_key: str, s
     return fig
 
 
-def plot_losses(title: str, dimension: int, models: list[ModelRecord], smooth_fraction: float) -> plt.Figure:
+def plot_losses(title: str, dimension: int, models: list[Model], smooth_fraction: float) -> plt.Figure:
     """
     Main entry point for plotting. Automatically detects if the plot should be 0D, 1D, or 2D
     based on the number of variation parameters.

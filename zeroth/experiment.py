@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import itertools
-import os
+from pathlib import Path
 from dataclasses import dataclass, replace
 from typing import Union
 
@@ -27,7 +27,6 @@ class ExperimentConfig(Summary):
     base_model: ModelConfig
     data_creator: DataCreator
     variations: list[VariationConfig]
-
 
     def instantiate(self) -> Experiment:
         return Experiment(self)
@@ -74,31 +73,32 @@ class Experiment:
         for model in self.models:
             model.test()
 
-    def save_df(self, save_dir: str) -> None:
+    def save_df(self, save_dir: Path) -> None:
         """
         saves the models parameters and their args
         """
-        os.makedirs(save_dir, exist_ok=True)
+        save_dir.mkdir(parents=True, exist_ok=True)
+        save_path = save_dir / self.ACCURACY_FILE
         print(f"    Saving results to: {save_dir}")
 
         data = [model.id | {"test_loss": model.test_loss, "test_accuracy": model.test_accuracy}
                 for model in self.models]
 
         df = pd.DataFrame(data)
-        df.to_csv(os.path.join(save_dir, self.ACCURACY_FILE), index_label="iteration")
+        df.to_csv(save_path)
 
-    def save_weights(self, save_dir: str) -> None:
+    def save_weights(self, save_dir: Path) -> None:
         for i, model in enumerate(self.models):
-            save_path = os.path.join(save_dir, model.name)
+            save_path = save_dir / model.name
             model.save_weights(save_path)
 
-    def save_configs(self, save_dir: str) -> None:
+    def save_configs(self, save_dir: Path) -> None:
 
-        config_path = os.path.join(save_dir, self.CONFIG_FILE)
+        config_path = save_dir / self.CONFIG_FILE
         self.config.save(config_path)
 
         for i, model in enumerate(self.models):
-            save_path = os.path.join(save_dir, model.name)
+            save_path = save_dir / model.name
             model.config.save(save_path)
 
 

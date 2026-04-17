@@ -27,7 +27,7 @@ class GlobalFiniteDifferenceConfig(GradientEstimatorConfig):
     dA: float
 
     def instantiate(self, nb_params) -> GlobalFiniteDifference:
-        return GlobalFiniteDifference(self, nb_params)
+        return GlobalFiniteDifference(self.dA, nb_params)
 
 
 @dataclass(frozen=True)
@@ -36,7 +36,7 @@ class PartialFiniteDifferenceConfig(GradientEstimatorConfig):
     indexes: list[int]
 
     def instantiate(self, nb_params) -> PartialFiniteDifference:
-        return PartialFiniteDifference(self, nb_params)
+        return PartialFiniteDifference(self.dA, self.indexes, nb_params)
 
 
 @dataclass(frozen=True)
@@ -46,7 +46,7 @@ class SimultaneousPerturbationConfig(GradientEstimatorConfig):
     get_perturbation_matrix: PerturbationMatrix
 
     def instantiate(self, nb_params: int) -> SimultaneousPerturbation:
-        return SimultaneousPerturbation(self, nb_params)
+        return SimultaneousPerturbation(self.dA, self.nb_perturbations, self.get_perturbation_matrix, nb_params)
 
 
 class GradientEstimator(ABC):
@@ -89,12 +89,12 @@ class NullGradientEstimator(GradientEstimator):
 
 
 class GlobalFiniteDifference(GradientEstimator):
-    def __init__(self, config: GlobalFiniteDifferenceConfig, nb_params: int) -> None:
+    def __init__(self, dA: float, nb_params: int) -> None:
         self.nb_params: int = nb_params
-        self.dA: float = config.dA
+        self.dA: float = dA
 
         self.perturbation_matrix: Array = np.vstack((np.zeros((1, self.nb_params)), np.eye(nb_params)))
-        self.Ps: Array = config.dA * self.perturbation_matrix
+        self.Ps: Array = dA * self.perturbation_matrix
 
     def perturb(self, Theta: Array) -> Array:
         return Theta + self.Ps
@@ -105,16 +105,16 @@ class GlobalFiniteDifference(GradientEstimator):
 
 
 class PartialFiniteDifference(GradientEstimator):
-    def __init__(self, config: PartialFiniteDifferenceConfig, nb_params: int) -> None:
+    def __init__(self, dA: float, indexes: list[int], nb_params: int) -> None:
         self.nb_params: int = nb_params
-        self.dA: float = config.dA
-        self.indexes = config.indexes
-        self.nb_perturbations = len(config.indexes)
+        self.dA: float = dA
+        self.indexes: list[int] = indexes
+        self.nb_perturbations: int = len(indexes)
 
         self.perturbation_matrix: Array = np.zeros((self.nb_perturbations + 1, self.nb_params))
         self.perturbation_matrix[range(1, self.nb_perturbations + 1), self.indexes] = 1
 
-        self.Ps: Array = config.dA * self.perturbation_matrix
+        self.Ps: Array = dA * self.perturbation_matrix
 
     def perturb(self, Theta: Array) -> Array:
         return Theta + self.Ps
@@ -125,11 +125,11 @@ class PartialFiniteDifference(GradientEstimator):
 
 
 class SimultaneousPerturbation(GradientEstimator):
-    def __init__(self, config: SimultaneousPerturbationConfig, nb_params: int) -> None:
+    def __init__(self, dA: float, nb_perturbations: int, get_perturbation_matrix: PerturbationMatrix, nb_params: int) -> None:
         self.nb_params: int = nb_params
-        self.dA: float = config.dA
-        self.nb_perturbations: int = config.nb_perturbations
-        self.get_perturbation_matrix: PerturbationMatrix = config.get_perturbation_matrix
+        self.dA: float = dA
+        self.nb_perturbations: int = nb_perturbations
+        self.get_perturbation_matrix: PerturbationMatrix = get_perturbation_matrix
 
         nb_copies = 3
         self.Ps_extended: Array = np.vstack((np.zeros((1, self.nb_params * nb_copies)),

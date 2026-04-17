@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
-import os
+from pathlib import Path
 from typing import Any
 
 
@@ -9,14 +9,10 @@ class Summary:
     def summary(self, file=None) -> None:
         print(self._summary(self, indent=0), file=file)
 
-    def save(self, save_dir: str) -> None:
+    def save(self, path: Path) -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
 
-        save_path = os.path.join(save_dir, "config.txt")
-
-        if os.path.dirname(save_path):
-            os.makedirs(os.path.dirname(save_path), exist_ok=True)
-
-        with open(save_path, "w", encoding="utf-8") as f:
+        with path.open("w", encoding="utf-8") as f:
             print(self._summary(self, indent=0), file=f)
 
     @classmethod

@@ -24,7 +24,7 @@ class ZerothOrderSGDConfig(ZerothOrderOptimizerConfig):
     learning_rate: float
 
     def instantiate(self, gradient_estimator: GradientEstimator) -> ZerothOrderSGD:
-        return ZerothOrderSGD(self, gradient_estimator)
+        return ZerothOrderSGD(self.learning_rate, gradient_estimator)
 
 
 @dataclass(frozen=True)
@@ -35,7 +35,7 @@ class ZerothOrderAdamConfig(ZerothOrderSGDConfig):
     epsilon: float
 
     def instantiate(self, gradient_estimator: GradientEstimator) -> ZerothOrderAdam:
-        return ZerothOrderAdam(self, gradient_estimator)
+        return ZerothOrderAdam(self.learning_rate, self.beta1, self.beta2, self.epsilon, gradient_estimator)
 
 
 class ZerothOrderOptimizer(Optimizer):
@@ -60,9 +60,9 @@ class ZerothOrderSGD(ZerothOrderOptimizer):
     the gradient by evaluating the loss on perturbed versions of the parameters.
     """
 
-    def __init__(self, config: ZerothOrderSGDConfig, gradient_estimator: GradientEstimator) -> None:
-        self.learning_rate = config.learning_rate
-        self.gradient_estimator = gradient_estimator
+    def __init__(self, learning_rate: float, gradient_estimator: GradientEstimator) -> None:
+        self.learning_rate: float = learning_rate
+        self.gradient_estimator: GradientEstimator = gradient_estimator
 
     def do_descent(self, blackbox: ZerothOrderBlackBox, loss: Loss, X: Array, Y_true: Array) -> float:
         """Performs one optimization step using zeroth_order.
@@ -104,16 +104,16 @@ class ZerothOrderAdam(ZerothOrderSGD):
         as its momentum terms (m, v) help smooth out the noise over time.
     """
     name = "Adam"
-    def __init__(self, config: ZerothOrderAdamConfig, gradient_estimator: GradientEstimator) -> None:
-        self.beta1: float = config.beta1
-        self.beta2: float = config.beta2
-        self.epsilon: float = config.epsilon
-        self.beta1t: float = config.beta1
-        self.beta2t: float = config.beta2
+    def __init__(self, learning_rate: float, beta1: float, beta2: float, epsilon: float, gradient_estimator: GradientEstimator) -> None:
+        self.beta1: float = beta1
+        self.beta2: float = beta2
+        self.epsilon: float = epsilon
+        self.beta1t: float = beta1
+        self.beta2t: float = beta2
         self.m: Array = np.array([0])
         self.v: Array = np.array([0])
 
-        super().__init__(config, gradient_estimator)
+        super().__init__(learning_rate, gradient_estimator)
 
     def _apply_update_rule(self, grad: Array) -> Array:
         self.m = self.beta1 * self.m + (1 - self.beta1) * grad
