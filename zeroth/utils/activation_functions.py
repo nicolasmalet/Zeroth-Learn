@@ -17,7 +17,7 @@ class Sigmoid(Activation):
         return 1 / (1 + np.exp(-x))
 
     def derivative(self, x: float | Array) -> float | Array:
-        s = self.__call__(x)  # On réutilise le __call__ pour optimiser
+        s = self.__call__(x)
         return s * (1 - s)
 
 
@@ -42,5 +42,4 @@ class Softmax(Activation):
         return e / np.sum(e, axis=-1, keepdims=True)
 
     def derivative(self, x: float | Array) -> float | Array:
-        # Comme indiqué dans votre code original, pas besoin de dérivée si géré par CrossEntropy
-        raise NotImplementedError("La dérivée de Softmax est généralement combinée avec CrossEntropy.")
+        raise NotImplementedError("no need for derivative when using CrossEntropy loss")
