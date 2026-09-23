@@ -44,19 +44,6 @@ def set_style() -> None:
         "#CCBB44", "#66CCEE", "#AA3377"
     ])
 
-    plt.rcParams.update({
-        "text.usetex": True,
-        "text.latex.preamble": (
-            r"\usepackage[T1]{fontenc} "
-            r"\usepackage{lmodern} "  # La police Overleaf
-            r"\usepackage{amsmath} "
-            r"\usepackage{amssymb} "
-            r"\usepackage{upgreek} "
-            r"\usepackage{bm} "
-        ),
-    })
-
-
 def format_ax(ax: Axes) -> None:
     ax.set_axisbelow(True)
     ax.set_yscale('log')
@@ -94,7 +81,7 @@ def plot_0d(models: list[Model], title: str, smooth_fraction: float = 50) -> plt
         format_ax(ax)
 
     plt.subplots_adjust(left=0.1, right=0.95, top=0.9, bottom=0.2)
-    fig.suptitle(rf"\textbf{{{title}}}", fontweight='bold', fontsize=12)
+    fig.suptitle(title, fontweight='bold', fontsize=12)
     ax.set_xlabel("Training steps")
     ax.set_ylabel("Training loss")
     format_ax(ax)
@@ -112,10 +99,8 @@ def plot_1d(models: list[Model], title: str, key: str, smooth_fraction: float = 
     """
     Plots a row of subplots, varying one hyperparameter (key) across columns.
     """
-    print(len(models), [model.id for model in models])
     cols = list(dict.fromkeys([m.id[key] for m in models]))
     n_models = len(cols)
-    print(cols, n_models)
     fig, axs = plt.subplots(1, n_models, figsize=(4.5 * n_models, 3.5), sharey=True)
 
     for i, val in enumerate(cols):
@@ -136,7 +121,7 @@ def plot_1d(models: list[Model], title: str, key: str, smooth_fraction: float = 
     fig.text(0.01, 0.5, "Training loss", va='center', rotation='vertical', fontsize=10)
 
     plt.subplots_adjust(left=0.05, right=0.96, top=0.85, bottom=0.2, wspace=0.10, hspace=0.18)
-    fig.suptitle(rf"\textbf{{{title}}}", fontweight='bold', fontsize=12)
+    fig.suptitle(title, fontweight='bold', fontsize=12)
 
     handles, labels = axs[0].get_legend_handles_labels()
 
@@ -186,7 +171,7 @@ def plot_2d(models: list[Model], title: str, row_key: str, col_key: str, smooth_
                         va="center", ha="left")
 
     plt.subplots_adjust(left=0.06, right=0.96, top=0.90, bottom=0.12, wspace=0.10, hspace=0.18)
-    fig.suptitle(rf"\textbf{{{title}}}", fontsize=14, fontweight='bold', y=0.98)
+    fig.suptitle(title, fontsize=14, fontweight='bold', y=0.98)
 
     handles, labels = axs[0, 0].get_legend_handles_labels()
     if handles:

@@ -1,274 +1,95 @@
 # Zeroth-Learn
 
-**A research library for zeroth-order optimization (gradient-free) in machine learning, with applications to quantum
-computing.**
+Zeroth-Learn is Nicolas Malet's NumPy implementation of neural-network training when the loss can be evaluated but its gradient is unavailable. The project focuses on random-direction gradient estimation, its evaluation cost, and a vectorized implementation tested on MNIST.
 
-*Research project — Nicolas, X24*
+## The problem
 
----
+Let \(f(\theta)\) be a mini-batch loss for parameters \(\theta\in\mathbb{R}^d\). Backpropagation computes \(\nabla f(\theta)\) by differentiating the model. A black-box model exposes only values of \(f\), so the gradient must instead be inferred from nearby evaluations.
 
-## Context & Motivation
+Coordinate-wise finite differences require a number of evaluations proportional to \(d\). Zeroth-Learn also implements a simultaneous-perturbation estimator whose evaluation count depends on a chosen number of directions \(T\), not directly on the number of parameters.
 
-This project originated from a fundamental question in quantum machine learning:
+## Random-direction estimator
 
-> **How do you train parameterized quantum circuits when backpropagation is impossible?**
+The implementation draws a matrix \(P\in\mathbb{R}^{T\times d}\). Its entries are independent Rademacher signs—\(+1\) or \(-1\) with equal probability—scaled by \(1/\sqrt{T}\). It evaluates the loss at the unperturbed parameters and along every row of \(P\):
 
-Quantum circuits are too complex to differentiate we treat it as a black box, thus we need to find alternatives to
-backpropagation, SPSA is an excellent candidate.
+$$
+\widehat{\nabla f}(\theta)
+= \frac{1}{\delta} P^\top
+\begin{bmatrix}
+f(\theta + \delta P_1)-f(\theta) \\
+\vdots \\
+f(\theta + \delta P_T)-f(\theta)
+\end{bmatrix}.
+$$
 
-**SPSA (Simultaneous Perturbation Stochastic Approximation)** solves this by estimating gradients from only O(1)
-evaluations per iteration.
+The Rademacher construction makes \(\mathbb{E}[P^\top P]=I\), so the first-order term of the estimator recovers the gradient in expectation. The code uses a one-sided difference: each update therefore needs one reference evaluation and \(T\) perturbed evaluations.
 
-Before deploying on quantum simulators, I built this library to:
+Increasing \(T\) averages over more random directions and can improve the estimate, but it also increases function evaluations and memory. This is the central trade-off explored by the MNIST experiments.
 
-1. Understand the theoretical foundations of zeroth-order optimization
-2. Validate SPSA stability on classical benchmarks (MNIST)
-3. Validate my results with backpropagation models.
+## Vectorized evaluation
 
----
+Nicolas implemented the complete training path in NumPy:
 
-## Technical Implementation
+1. flatten all weights and biases into one parameter vector \(\theta\);
+2. construct the \((T+1)\) nominal and perturbed parameter vectors;
+3. recover batched weight tensors for each layer;
+4. evaluate every perturbed network through NumPy broadcasting;
+5. aggregate the loss differences and update \(\theta\) with SGD or Adam.
 
-### Architecture Decisions
+The vectorization removes the Python loop over perturbations. It does not reduce the \(T+1\) black-box evaluations; it executes them as one batched array computation.
 
-**Problem**: Standard deep learning frameworks (PyTorch, JAX) are tightly coupled to automatic differentiation. I needed
-an architecture where gradient computation is a **swappable abstraction**.
+## What the experiments show
 
-**Solution**: Clean separation of concerns using abstract base classes:
+The repository applies the estimator to a linear `784 → 10` softmax classifier on MNIST. The configured sweep uses one epoch, batches of 50, Adam, \(\delta=10^{-8}\), and \(T\in\{10,30,100\}\). These experiments were run on CPU.
 
-```
-Model (training loop orchestration)
-  ├── NeuralNetwork (forward pass interface)
-  │     ├── NeuralNetworkBackpropagation (layer-based, stores activations)
-  │     └── NeuralNetworkPerturbation (parameter-vector based, no activation storage)
-  └── Optimizer (gradient computation + update rule)
-        ├── OptimizerBackprop (analytical gradients via chain rule)
-        └── OptimizerPerturbation (estimated gradients via function evaluations)
-```
+![Training loss for 10, 30, and 100 perturbations](assets/plots/nb_perturbations.png)
 
-**Key insight**: By treating gradients as an *estimated quantity* rather than an *exact derivative*, both methods become
-instances of the same abstraction.
+In this saved run, all three configurations reduce training loss, and larger values of \(T\) end at lower loss. The figure supports a qualitative conclusion for this run: averaging more directions improved optimization while requiring proportionally more perturbed evaluations. It does not establish an optimal \(T\), expected performance across seeds, or a framework-level speed advantage.
 
----
+The repository also contains saved sweeps over learning rate, network size, and Adam versus SGD. [`Plotting_Weights.ipynb`](Plotting_Weights.ipynb) is an executed analysis of the separate first-order linear baseline and its learned digit templates.
 
-## Quick Start
+## Contribution
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/nicolasmalet/Zeroth-Learn.git
-   cd Zeroth-Learn
-   ```
+Nicolas designed and implemented:
 
-2. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
+- finite-difference and simultaneous-perturbation estimators;
+- the Rademacher direction generator;
+- the flat-to-structured parameter mapping;
+- vectorized forward evaluation across perturbed models;
+- first-order and zeroth-order SGD/Adam training paths;
+- the MNIST experiment and plotting infrastructure.
 
-3. **Run a benchmark experiment:**
-   To train a linear MLP on MNIST using SPSA with 50 perturbations:
-   ```bash
-   python -m lab.mnist 
-   ```
+The repository history contains a single contributor.
 
----
+## Read the implementation
 
-### SPSA Implementation Details
+- [`gradient_estimators.py`](zeroth/zeroth_order/gradient_estimators.py) — perturbations and gradient reconstruction.
+- [`perturbation_matrices.py`](zeroth/utils/perturbation_matrices.py) — Rademacher directions.
+- [`neural_network.py`](zeroth/zeroth_order/neural_network/neural_network.py) — vectorized perturbed forward pass.
+- [`parameter_manager.py`](zeroth/zeroth_order/neural_network/parameter_manager.py) — mapping between \(\theta\) and layer tensors.
+- [`optimizers.py`](zeroth/zeroth_order/optimizers.py) — SGD and Adam updates.
+- [`lab/mnist`](lab/mnist/) — experiment configurations and data pipeline.
 
-The core challenge: **evaluate multiple perturbed models in parallel without Python loops**.
+## Run locally
 
-#### Naive Approach (slow):
+Python 3.11 or later is recommended. The first MNIST run downloads the dataset from OpenML.
 
-```python
-for perturbation in perturbations:
-    theta_perturbed = theta + perturbation
-    loss_perturbed[i] = evaluate_model(theta_perturbed)
-```
-
-**Cost**: O(T) sequential forward passes for T perturbations.
-
-#### Vectorized Approach (implemented):
-
-```python
-# Shape: (T, n_params)
-pThetas = theta[None, :] + perturbations  
-
-# Reshape to (T, n_layers) weight matrices
-Ws, Bs = params.from_pThetas(pThetas)  
-
-# Broadcast input across all T models simultaneously
-# X: (batch, input_dim) -> (T, batch, input_dim)
-for W, B, f in zip(Ws, Bs, fs):
-    X = f(X @ W + B)  # Matrix multiplication broadcasts automatically
+```bash
+git clone https://github.com/nicolasmalet/Zeroth-Learn.git
+cd Zeroth-Learn
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install -r requirements.txt -e .
+MPLBACKEND=Agg python3 -m lab.mnist
 ```
 
-**Result**: All T forward passes execute in a single vectorized NumPy operation.
+## Limits
 
----
+- The saved plots represent individual runs; seeds, repeated trials, and uncertainty estimates were not retained with the committed figures.
+- MNIST is a classical validation problem, not evidence of performance on a quantum circuit or quantum device.
+- Larger \(T\) increases both evaluation count and the memory used by the vectorized batch.
+- The project does not provide a controlled CPU benchmark against another framework.
 
-### Mathematical Rigor
+## Author
 
-#### Gradient Estimation
-
-The SPSA gradient estimator:
-
-$$\nabla L(\theta) \approx \frac{1}{T \cdot \delta} \sum_{i=1}^{T} \left( L(\theta + \delta \Delta_i) - L(\theta) \right) \Delta_i$$
-
-where $\Delta_i \sim \text{Rademacher}(\pm 1)$ are random perturbation directions.
-
-**Implementation** (using Einstein summation for efficiency):
-
-```python
-# L_diff: (T, batch_size), Ps: (T, n_params)
-grad = np.einsum('ij,ik->k', L_diff, self.Ps) / (batch_size * T * delta)
-```
-
-#### Numerical Stability Considerations
-
-- **Softmax**: Shifted by max to prevent overflow: `exp(x - max(x))`
-- **CrossEntropy**: Added epsilon (1e-8) to prevent log(0)
-- **Xavier initialization**: Weights sampled from $U(-\sqrt{6/(n_{in}+n_{out})}, +\sqrt{6/(n_{in}+n_{out})})$
-
----
-
-## Experimental Validation
-
-### Research Question
-
-*What are the optimal conditions (architecture depth, learning rate, perturbation count) for SPSA to compete with
-backpropagation?*
-
-### Methodology
-
-**Phase 1: Hyperparameter Sensitivity Analysis**
-
-- Grid search over learning rates × architectures
-- Identified stability thresholds (divergence boundaries)
-
-<img alt="Learning Rate Analysis" src="assets/plots/lr_adam.png" height="300">
-
-**Finding**: Adam requires lr ~ 0.001 for networks with 10K to 100K parameters to avoid gradient explosion in SPSA.
-
----
-
-**Phase 2: Scalability Limits**
-
-- Trained 6 models from 7K to 1.3M parameters (here are the first three)
-- Measured convergence speed vs parameter count
-
-<img alt="Architecture Scaling" src="assets/plots/small_sizes.png" height="300"/>
-
-**Finding**: Models with 100K parameters are sufficient to get 97% accuracy
-
----
-
-**Phase 3: Sample Efficiency**
-
-- Varied perturbation count T ∈ {10, 30, 100}
-- Measured gradient variance vs. computational cost
-
-<img alt="Perturbation Analysis" src="assets/plots/nb_perturbations.png" height="300"/>
-
-**Finding**: As gradient approximation variance reduction follows $\sigma \propto 1/\sqrt{T}$, we get marginal returns
-beyond T=30.
-
-**Practical implication**: For quantum circuits, 30 evaluations/step is feasible on current hardware.
-
----
-
-## Software Engineering Practices
-
-### Type Safety & Configuration Management
-
-- **Frozen dataclasses** for all configs → immutable
-- **Config serialization** → full experiment reproducibility (saved as JSON)
-
-### Modular Design
-
-- **Catalog pattern** for hyperparameters (see `config.py`):
-
-```python
-@dataclass(frozen=True)
-class OptimizerCatalog:
-    FirstOrderAdam = FirstOrderAdamConfig(lr=0.001, ...)
-    ZerothOrderAdam = ZerothOrderAdamConfig(lr=0.001, ...)
-```
-
-Enables experiment generation via `itertools.product`.
-
-### Experiment Reproducibility
-
-- Automatic result saving (loss curves, results dataframe, hyperparameter logs)
-- Plot styling configured globally (publication-ready figures)
-
----
-
-## Software Design Principles
-
-- **Separation of Concerns**: Gradient computation (Optimizer) is decoupled from forward pass (NeuralNetwork)
-- **Config-Driven**: All hyperparameters defined as immutable dataclasses → reproducibility
-- **Polymorphism**: Models can swap between backprop and SPSA without code changes
-
----
-
-## Skills Demonstrated
-
-**Deep Learning Fundamentals**: Implemented backprop from scratch (no PyTorch/TensorFlow)  
-**Numerical Optimization**: SPSA, Adam, gradient estimation theory  
-**Scientific Computing**: Vectorized NumPy, broadcasting, numerical stability  
-**Software Architecture**: Abstract base classes, config management  
-**Research Methodology**: Systematic experimentation, reproducible results  
-**Mathematical Rigor**: Gradient derivations, loss functions
-
----
-
-## Next Steps
-
-### Quantum Simulation (In Progress)
-
-- Implement `QuantumCircuitSimulator` class using Dynamics
-- Test SPSA on parameterized quantum circuits
-- Validate that convergence behavior matches classical benchmarks
-
----
-
-## Technical Stack
-
-**Language**: Python  
-**Core Libraries**: NumPy (vectorization), Pandas (results), Matplotlib (visualization)  
-**Design Patterns**: Strategy (Optimizer), Abstract Factory (Config instantiation), Template Method (Model training
-loop)
-
----
-
-## Project Structure
-
-```
-zeroth/
-│
-│── first-order/                # Analytical gradient methods
-│   ├── layer.py                # Forward/backward pass logic
-│   └── optimizers.py           # SGD, Adam implementations
-│── zeroth-order/               # Zeroth-order methods
-│   ├── gradient_estimator.py   # Gradient estimation strategies
-│   ├── parameter_manager.py    # Parameter vector management
-│   └── optimizers.py           # SPSA + Adam/SGD variants
-│── abstract/                   # Shared abstractions
-│   ├── neural_network.py       # Abstract base class
-│   └── optimizer.py            # Optimizer interface
-└── experiment.py               # Experiment orchestration
-
-lab/
-│
-├── experiments.py              # Pre-configured experiments
-├── models.py                   # Model definitions
-└── config.py                   # Hyperparameter catalogs
-```
-
----
-
-## Contact
-
-**Nicolas Malet**  
-X24 — École Polytechnique  
-nicolas.malet@polytechnique.edu  
-[GitHub](https://github.com/nicolasmalet) | [LinkedIn](https://www.linkedin.com/in/nicolas-malet-pro)
+Nicolas Malet — École Polytechnique, X2024 · [GitHub](https://github.com/nicolasmalet) · [LinkedIn](https://www.linkedin.com/in/nicolas-malet-pro)
