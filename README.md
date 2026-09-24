@@ -10,7 +10,7 @@ Coordinate-wise finite differences require a number of evaluations proportional 
 
 ## Random-direction estimator
 
-The implementation draws a matrix \(P\in\mathbb{R}^{T\times d}\). Its entries are independent Rademacher signs—\(+1\) or \(-1\) with equal probability—scaled by \(1/\sqrt{T}\). It evaluates the loss at the unperturbed parameters and along every row of \(P\):
+The implementation draws a matrix \(P\in\mathbb{R}^{T\times d}\). Its entries are independent Rademacher signs (\(+1\) or \(-1\) with equal probability), scaled by \(1/\sqrt{T}\). It evaluates the loss at the unperturbed parameters and along every row of \(P\):
 
 $$
 \widehat{\nabla f}(\theta)
@@ -44,7 +44,7 @@ The repository applies the estimator to a linear `784 → 10` softmax classifier
 
 ![Training loss for 10, 30, and 100 perturbations](assets/plots/nb_perturbations.png)
 
-In this saved run, all three configurations reduce training loss, and larger values of \(T\) end at lower loss. The figure supports a qualitative conclusion for this run: averaging more directions improved optimization while requiring proportionally more perturbed evaluations. It does not establish an optimal \(T\), expected performance across seeds, or a framework-level speed advantage.
+In the saved run, all three configurations reduce training loss, and larger values of \(T\) end at lower loss. Averaging more directions improved optimization in this experiment while requiring proportionally more perturbed evaluations. A single run cannot establish an optimal \(T\), expected performance across seeds, or a framework-level speed advantage.
 
 The repository also contains saved sweeps over learning rate, network size, and Adam versus SGD. [`Plotting_Weights.ipynb`](Plotting_Weights.ipynb) is an executed analysis of the separate first-order linear baseline and its learned digit templates.
 
@@ -63,12 +63,12 @@ The repository history contains a single contributor.
 
 ## Read the implementation
 
-- [`gradient_estimators.py`](zeroth/zeroth_order/gradient_estimators.py) — perturbations and gradient reconstruction.
-- [`perturbation_matrices.py`](zeroth/utils/perturbation_matrices.py) — Rademacher directions.
-- [`neural_network.py`](zeroth/zeroth_order/neural_network/neural_network.py) — vectorized perturbed forward pass.
-- [`parameter_manager.py`](zeroth/zeroth_order/neural_network/parameter_manager.py) — mapping between \(\theta\) and layer tensors.
-- [`optimizers.py`](zeroth/zeroth_order/optimizers.py) — SGD and Adam updates.
-- [`lab/mnist`](lab/mnist/) — experiment configurations and data pipeline.
+- [`gradient_estimators.py`](zeroth/zeroth_order/gradient_estimators.py): perturbations and gradient reconstruction.
+- [`perturbation_matrices.py`](zeroth/utils/perturbation_matrices.py): Rademacher directions.
+- [`neural_network.py`](zeroth/zeroth_order/neural_network/neural_network.py): vectorized perturbed forward pass.
+- [`parameter_manager.py`](zeroth/zeroth_order/neural_network/parameter_manager.py): mapping between \(\theta\) and layer tensors.
+- [`optimizers.py`](zeroth/zeroth_order/optimizers.py): SGD and Adam updates.
+- [`lab/mnist`](lab/mnist/): experiment configurations and data pipeline.
 
 ## Run locally
 
@@ -92,4 +92,4 @@ MPLBACKEND=Agg python3 -m lab.mnist
 
 ## Author
 
-Nicolas Malet — École Polytechnique, X2024 · [GitHub](https://github.com/nicolasmalet) · [LinkedIn](https://www.linkedin.com/in/nicolas-malet-pro)
+Nicolas Malet, École Polytechnique, X2024 · [GitHub](https://github.com/nicolasmalet) · [LinkedIn](https://www.linkedin.com/in/nicolas-malet-pro)
