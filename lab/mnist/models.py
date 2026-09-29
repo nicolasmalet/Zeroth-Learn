@@ -2,7 +2,9 @@ import zeroth.losses as losses
 from zeroth.first_order import FirstOrderModelConfig
 from zeroth.utils.metrics import Accuracy
 from zeroth.zeroth_order import ZerothOrderModelConfig
-from . import optimizers, neural_networks as nn
+
+from . import neural_networks as nn
+from . import optimizers
 
 DEFAULT_BATCH_SIZE = 50
 DEFAULT_NB_EPOCHS = 1

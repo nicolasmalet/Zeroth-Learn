@@ -1,6 +1,8 @@
 import zeroth.paths as paths
 from zeroth.experiment import VariationConfig
-from . import optimizers, neural_networks as nn
+
+from . import neural_networks as nn
+from . import optimizers
 
 all_sizes = VariationConfig(
     name="Network Size",

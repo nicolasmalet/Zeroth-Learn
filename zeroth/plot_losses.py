@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 from cycler import cycler
 from matplotlib.axes import Axes
+from matplotlib.figure import Figure
 
 from .types import Array
 
@@ -67,7 +68,7 @@ def smooth_curve(loss: Array, window_length: int) -> Array:
     return np.exp(pd.Series(np.log(loss)).ewm(span=window_length, adjust=True).mean())
 
 
-def plot_0d(models: list[Model], title: str, smooth_fraction: float = 50) -> plt.Figure:
+def plot_0d(models: list[Model], title: str, smooth_fraction: float = 50) -> Figure:
     """
     Plots a single graph overlaying multiple models that share the same hyperparameters.
     """
@@ -95,7 +96,7 @@ def plot_0d(models: list[Model], title: str, smooth_fraction: float = 50) -> plt
     return fig
 
 
-def plot_1d(models: list[Model], title: str, key: str, smooth_fraction: float = 50) -> plt.Figure:
+def plot_1d(models: list[Model], title: str, key: str, smooth_fraction: float = 50) -> Figure:
     """
     Plots a row of subplots, varying one hyperparameter (key) across columns.
     """
@@ -120,7 +121,7 @@ def plot_1d(models: list[Model], title: str, key: str, smooth_fraction: float = 
     fig.text(0.5, 0.1, "Training steps", ha='center', fontsize=10)
     fig.text(0.01, 0.5, "Training loss", va='center', rotation='vertical', fontsize=10)
 
-    plt.subplots_adjust(left=0.05, right=0.96, top=0.85, bottom=0.2, wspace=0.10, hspace=0.18)
+    plt.subplots_adjust(left=0.08, right=0.96, top=0.85, bottom=0.2, wspace=0.10, hspace=0.18)
     fig.suptitle(title, fontweight='bold', fontsize=12)
 
     handles, labels = axs[0].get_legend_handles_labels()
@@ -132,7 +133,7 @@ def plot_1d(models: list[Model], title: str, key: str, smooth_fraction: float = 
     return fig
 
 
-def plot_2d(models: list[Model], title: str, row_key: str, col_key: str, smooth_fraction: float) -> plt.Figure:
+def plot_2d(models: list[Model], title: str, row_key: str, col_key: str, smooth_fraction: float) -> Figure:
     """
     Plots a grid of subplots varying two hyperparameters: one across rows, one across columns.
 
@@ -184,7 +185,7 @@ def plot_2d(models: list[Model], title: str, row_key: str, col_key: str, smooth_
     return fig
 
 
-def plot_losses(title: str, dimension: int, models: list[Model], smooth_fraction: float) -> plt.Figure:
+def plot_losses(title: str, dimension: int, models: list[Model], smooth_fraction: float) -> Figure:
     """
     Main entry point for plotting. Automatically detects if the plot should be 0D, 1D, or 2D
     based on the number of variation parameters.

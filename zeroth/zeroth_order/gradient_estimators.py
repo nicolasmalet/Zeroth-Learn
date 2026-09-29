@@ -121,7 +121,7 @@ class PartialFiniteDifference(GradientEstimator):
 
     def get_gradient(self, p_Loss: Array) -> Array:
         L_diff = p_Loss[1:] - p_Loss[0]
-        return self.Ps[1:].T @ L_diff.mean(axis=1) / self.dA
+        return self.perturbation_matrix[1:].T @ L_diff.mean(axis=1) / self.dA
 
 
 class SimultaneousPerturbation(GradientEstimator):

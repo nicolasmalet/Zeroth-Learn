@@ -1,4 +1,4 @@
-from dataclasses import replace
+from dataclasses import fields, is_dataclass, replace
 from typing import Any
 
 
@@ -23,16 +23,15 @@ def set_value_by_path(obj: Any, path: str, value: Any) -> Any:
         new_seq[int(field)] = value
         return type(obj)(new_seq)
 
-    return replace(obj, **{field: value})
-
-
-from dataclasses import is_dataclass, fields
+    if is_dataclass(obj) and not isinstance(obj, type):
+        return replace(obj, **{field: value})
+    raise TypeError(f"Cannot replace field on {type(obj).__name__}")
 
 
 def config_serializer(obj: Any):
     if is_dataclass(obj):
         data = {f.name: getattr(obj, f.name) for f in fields(obj)}
-        return {obj.__class__.__name__: data}
+        return {type(obj).__name__: data}
 
     if hasattr(obj, "__class__") and obj.__class__.__module__ != "builtins":
         return repr(obj)

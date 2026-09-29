@@ -1,4 +1,4 @@
-from typing import Iterator
+from collections.abc import Iterator
 
 import numpy as np
 
@@ -17,7 +17,7 @@ class Data:
         self.input_dim: int = self.raw_X_train.shape[1]
         self.output_dim: int = self.raw_Y_train.shape[1] if nb_class == 0 else nb_class
 
-        self.batch_size: int | None = None
+        self.batch_size: int = 1
 
         self.indices: np.ndarray = np.arange(self.nb_data)
 

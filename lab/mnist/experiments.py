@@ -1,5 +1,6 @@
 from zeroth.experiment import ExperimentConfig
-from . import variations, models
+
+from . import models, variations
 from .data import DataCreatorMnist
 
 lr_vs_size_adam: ExperimentConfig = ExperimentConfig(name="lr_vs_size_adam",

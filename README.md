@@ -1,95 +1,78 @@
 # Zeroth-Learn
 
-Zeroth-Learn is Nicolas Malet's NumPy implementation of neural-network training when the loss can be evaluated but its gradient is unavailable. The project focuses on random-direction gradient estimation, its evaluation cost, and a vectorized implementation tested on MNIST.
+**A NumPy library for estimating gradients from loss evaluations and training black-box models.**
 
-## The problem
+The library implements coordinate finite differences, random-direction estimation, and SGD/Adam updates. Its MNIST experiments check that these components can train models when backpropagation is unavailable. The estimator and optimizer interfaces can also be used with other black boxes, including the simulator in [Quantum-Learn](https://github.com/nicolasmalet/Quantum-Learn).
 
-Let \(f(\theta)\) be a mini-batch loss for parameters \(\theta\in\mathbb{R}^d\). Backpropagation computes \(\nabla f(\theta)\) by differentiating the model. A black-box model exposes only values of \(f\), so the gradient must instead be inferred from nearby evaluations.
+## 1. Optimisation without derivatives
 
-Coordinate-wise finite differences require a number of evaluations proportional to \(d\). Zeroth-Learn also implements a simultaneous-perturbation estimator whose evaluation count depends on a chosen number of directions \(T\), not directly on the number of parameters.
+Let $\theta\in\mathbb R^d$ be model parameters and $f(\theta)$ a mini-batch loss. The model exposes values of $f$, but not $\nabla f$. Zeroth-order optimisation estimates a descent direction by evaluating nearby parameters:
 
-## Random-direction estimator
+```math
+\theta_{k+1}=\theta_k-\eta_k\widehat{\nabla f}(\theta_k).
+```
 
-The implementation draws a matrix \(P\in\mathbb{R}^{T\times d}\). Its entries are independent Rademacher signs (\(+1\) or \(-1\) with equal probability), scaled by \(1/\sqrt{T}\). It evaluates the loss at the unperturbed parameters and along every row of \(P\):
+For Adam, the estimated gradient enters the usual first- and second-moment update in place of an exact gradient. No derivative of the black-box model is required.
 
-$$
+## 2. Finite-difference estimators
+
+A one-sided coordinate difference estimates component $i$ as
+
+```math
+\widehat{\partial_i f}(\theta)
+=\frac{f(\theta+\delta e_i)-f(\theta)}{\delta}.
+```
+
+Estimating all $d$ components needs $d+1$ loss evaluations. [`GlobalFiniteDifference`](https://github.com/nicolasmalet/Zeroth-Learn/blob/main/zeroth/zeroth_order/gradient_estimators.py) does this for every coordinate; [`PartialFiniteDifference`](https://github.com/nicolasmalet/Zeroth-Learn/blob/main/zeroth/zeroth_order/gradient_estimators.py) evaluates only selected coordinates and returns zero elsewhere.
+
+For a cheaper estimate in high dimension, [`SimultaneousPerturbation`](https://github.com/nicolasmalet/Zeroth-Learn/blob/main/zeroth/zeroth_order/gradient_estimators.py) draws $T$ Rademacher directions. At construction, the matrix $P\in\mathbb R^{T\times d}$ has entries $P_{ij}=s_{ij}/\sqrt T$, where each $s_{ij}$ is $+1$ or $-1$ with equal probability. The implementation uses
+
+```math
 \widehat{\nabla f}(\theta)
-= \frac{1}{\delta} P^\top
-\begin{bmatrix}
-f(\theta + \delta P_1)-f(\theta) \\
-\vdots \\
-f(\theta + \delta P_T)-f(\theta)
-\end{bmatrix}.
-$$
+=\frac{1}{\delta}P^\top
+\begin{pmatrix}
+f(\theta+\delta P_1)-f(\theta)\\
+\vdots\\
+f(\theta+\delta P_T)-f(\theta)
+\end{pmatrix}.
+```
 
-The Rademacher construction makes \(\mathbb{E}[P^\top P]=I\), so the first-order term of the estimator recovers the gradient in expectation. The code uses a one-sided difference: each update therefore needs one reference evaluation and \(T\) perturbed evaluations.
+Because $\mathbb E[P^\top P]=I$, the first-order term recovers $\nabla f$ in expectation. Each update costs $T+1$ loss evaluations, independent of $d$ for a fixed $T$. Larger $T$ averages more directions but increases evaluation cost and memory.
 
-Increasing \(T\) averages over more random directions and can improve the estimate, but it also increases function evaluations and memory. This is the central trade-off explored by the MNIST experiments.
+## 3. From an estimator to a model update
 
-## Vectorized evaluation
+The interfaces separate three operations:
 
-Nicolas implemented the complete training path in NumPy:
+| Operation                                                  | Implementation                                                              |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Generate perturbed parameters and reconstruct the gradient | [`gradient_estimators.py`](https://github.com/nicolasmalet/Zeroth-Learn/blob/main/zeroth/zeroth_order/gradient_estimators.py)     |
+| Generate Rademacher directions                             | [`perturbation_matrices.py`](https://github.com/nicolasmalet/Zeroth-Learn/blob/main/zeroth/utils/perturbation_matrices.py)        |
+| Evaluate a model at nominal and perturbed parameters       | [`zeroth_order_blackbox.py`](https://github.com/nicolasmalet/Zeroth-Learn/blob/main/zeroth/zeroth_order/zeroth_order_blackbox.py) |
+| Apply SGD or Adam to the estimated gradient                | [`optimizers.py`](https://github.com/nicolasmalet/Zeroth-Learn/blob/main/zeroth/zeroth_order/optimizers.py)                       |
 
-1. flatten all weights and biases into one parameter vector \(\theta\);
-2. construct the \((T+1)\) nominal and perturbed parameter vectors;
-3. recover batched weight tensors for each layer;
-4. evaluate every perturbed network through NumPy broadcasting;
-5. aggregate the loss differences and update \(\theta\) with SGD or Adam.
+The included [`ZerothOrderNeuralNetwork`](https://github.com/nicolasmalet/Zeroth-Learn/blob/main/zeroth/zeroth_order/neural_network/neural_network.py) is one black-box implementation. [`ParameterManager`](https://github.com/nicolasmalet/Zeroth-Learn/blob/main/zeroth/zeroth_order/neural_network/parameter_manager.py) maps weights and biases to a flat $\theta$; NumPy broadcasting evaluates its $T+1$ perturbed networks in one batch. This batching reduces Python overhead, not the number of loss evaluations. Other models choose how to perform those evaluations.
 
-The vectorization removes the Python loop over perturbations. It does not reduce the \(T+1\) black-box evaluations; it executes them as one batched array computation.
+## 4. Numerical checks
 
-## What the experiments show
+A deterministic [test](https://github.com/nicolasmalet/Zeroth-Learn/blob/main/tests/test_gradient_estimator.py) applies the random-direction estimator to a linear function, whose gradient is known. The MNIST experiments provide end-to-end checks of zeroth-order training on CPU. Their protocols, results, plots, and raw loss traces are in [Experiments](https://github.com/nicolasmalet/Zeroth-Learn/blob/main/EXPERIMENTS.md).
 
-The repository applies the estimator to a linear `784 → 10` softmax classifier on MNIST. The configured sweep uses one epoch, batches of 50, Adam, \(\delta=10^{-8}\), and \(T\in\{10,30,100\}\). These experiments were run on CPU.
+## 5. Reproduce the experiments
 
-![Training loss for 10, 30, and 100 perturbations](assets/plots/nb_perturbations.png)
-
-In the saved run, all three configurations reduce training loss, and larger values of \(T\) end at lower loss. Averaging more directions improved optimization in this experiment while requiring proportionally more perturbed evaluations. A single run cannot establish an optimal \(T\), expected performance across seeds, or a framework-level speed advantage.
-
-The repository also contains saved sweeps over learning rate, network size, and Adam versus SGD. [`Plotting_Weights.ipynb`](Plotting_Weights.ipynb) is an executed analysis of the separate first-order linear baseline and its learned digit templates.
-
-## Contribution
-
-Nicolas designed and implemented:
-
-- finite-difference and simultaneous-perturbation estimators;
-- the Rademacher direction generator;
-- the flat-to-structured parameter mapping;
-- vectorized forward evaluation across perturbed models;
-- first-order and zeroth-order SGD/Adam training paths;
-- the MNIST experiment and plotting infrastructure.
-
-The repository history contains a single contributor.
-
-## Read the implementation
-
-- [`gradient_estimators.py`](zeroth/zeroth_order/gradient_estimators.py): perturbations and gradient reconstruction.
-- [`perturbation_matrices.py`](zeroth/utils/perturbation_matrices.py): Rademacher directions.
-- [`neural_network.py`](zeroth/zeroth_order/neural_network/neural_network.py): vectorized perturbed forward pass.
-- [`parameter_manager.py`](zeroth/zeroth_order/neural_network/parameter_manager.py): mapping between \(\theta\) and layer tensors.
-- [`optimizers.py`](zeroth/zeroth_order/optimizers.py): SGD and Adam updates.
-- [`lab/mnist`](lab/mnist/): experiment configurations and data pipeline.
-
-## Run locally
-
-Python 3.11 or later is recommended. The first MNIST run downloads the dataset from OpenML.
+With [uv](https://docs.astral.sh/uv/), the lockfile fixes the dependency versions. The first experiment run downloads MNIST from OpenML.
 
 ```bash
 git clone https://github.com/nicolasmalet/Zeroth-Learn.git
 cd Zeroth-Learn
-python3 -m venv .venv
-source .venv/bin/activate
-python3 -m pip install -r requirements.txt -e .
-MPLBACKEND=Agg python3 -m lab.mnist
+uv sync --locked --extra mnist
+uv run --locked --extra mnist python -m unittest discover -s tests
+MPLBACKEND=Agg uv run --locked --extra mnist python -m lab.mnist
+MPLBACKEND=Agg uv run --locked --extra mnist python -m lab.mnist.run_experiment nb_perturbations_vs_model_size
 ```
 
-## Limits
+The experiments write accuracy, loss traces, and plots under `results/`.
 
-- The saved plots represent individual runs; seeds, repeated trials, and uncertainty estimates were not retained with the committed figures.
-- MNIST is a classical validation problem, not evidence of performance on a quantum circuit or quantum device.
-- Larger \(T\) increases both evaluation count and the memory used by the vectorized batch.
-- The project does not provide a controlled CPU benchmark against another framework.
+Without uv, install the package with its MNIST extra in a virtual environment, then run the same Python modules.
 
-## Author
+## 6. Scope
 
-Nicolas Malet, École Polytechnique, X2024 · [GitHub](https://github.com/nicolasmalet) · [LinkedIn](https://www.linkedin.com/in/nicolas-malet-pro)
+The MNIST experiments validate classical models. They are not benchmarks of quantum hardware or of PyTorch, and their saved plots do not contain repeated trials or uncertainty estimates. Memory use grows with the number of perturbations in the vectorized neural-network implementation.

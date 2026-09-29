@@ -2,7 +2,6 @@ import numpy as np
 
 from ...abstract.activation import Activation
 from ...types import Array
-from ...utils.activation_functions import ReLU
 
 
 class ParameterManager:
@@ -23,22 +22,21 @@ class ParameterManager:
         self.Ws: list[Array] = []
         self.Bs: list[Array] = []
         self.fs: list[Activation] = []
-        self.W_shapes: list[tuple] = []
+        self.W_shapes: list[tuple[int, int]] = []
         self.W_sizes: list[int] = []
         self.B_sizes: list[int] = []
         self.nb_layers: int = 0
         self.nb_params: int = 0
         self.Theta: Array = np.array([])
 
-    def push_layer(self, input_dim: int, output_dim: int, f: Activation = ReLU()) -> None:
+    def push_layer(self, input_dim: int, output_dim: int, f: Activation) -> None:
         """Adds a layer to the structure and updates the flat Theta vector.
 
         Args:
             output_dim (int): Number of neurons in this layer.
-            input_dim (int, optional): Input size. If None, inferred from previous layer.
+            input_dim (int): Input size.
             f (callable): Activation function.
         """
-        input_dim = self.B_sizes[-1] if input_dim is None else input_dim
         limit = np.sqrt(6.0 / (input_dim + output_dim))
         W = np.random.uniform(-limit, limit, (input_dim, output_dim))
         B = np.zeros(output_dim)

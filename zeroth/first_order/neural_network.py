@@ -1,6 +1,8 @@
-from .layer import Layer
+from typing import Any
+
 from ..abstract.neural_network import NeuralNetwork, NeuralNetworkConfig
 from ..types import Array
+from .layer import Layer
 
 
 class FirstOrderNeuralNetwork(NeuralNetwork):
@@ -25,14 +27,14 @@ class FirstOrderNeuralNetwork(NeuralNetwork):
     def __call__(self, X: Array) -> Array:
         return self.forward(X)
 
-    def init_params(self, params: dict) -> None:
+    def init_params(self, params: dict[str, Any]) -> None:
         Ws = params["Ws"]
         Bs = params["Bs"]
-        for layer, W, B in zip(self.layers, Ws, Bs):
+        for layer, W, B in zip(self.layers, Ws, Bs, strict=True):
             layer.W = W
             layer.B = B
 
-    def get_params(self) -> dict:
+    def get_params(self) -> dict[str, Any]:
         Ws, Bs = [], []
         for layer in self.layers:
             Ws.append(layer.W)

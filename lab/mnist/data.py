@@ -8,7 +8,9 @@ from zeroth.data import Data
 class DataCreatorMnist(DataCreator):
     task_name: str = "mnist"
     def __call__(self) -> Data:
-        mnist = fetch_openml('mnist_784', version=1)
+        mnist = fetch_openml('mnist_784', version=1, return_X_y=False)
+        if isinstance(mnist, tuple):
+            raise TypeError("Expected a dataset with data and target fields")
 
         # Load data
         X = np.array(mnist.data.astype("float64"))  # 70 000 images

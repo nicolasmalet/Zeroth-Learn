@@ -4,7 +4,6 @@ import numpy as np
 
 from . import experiments
 
-
 RESULTS_DIR = Path("results/nb_perturbations_adam_sgd")
 
 

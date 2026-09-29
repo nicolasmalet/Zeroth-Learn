@@ -1,15 +1,15 @@
 from __future__ import annotations
 
-from abc import abstractmethod, ABC
+from abc import ABC, abstractmethod
 from collections import defaultdict
 from dataclasses import dataclass
 
 import numpy as np
 
-from .layer import Layer
-from .neural_network import FirstOrderNeuralNetwork
 from ..abstract import Loss, Optimizer, Summary
 from ..types import Array
+from .layer import Layer
+from .neural_network import FirstOrderNeuralNetwork
 
 
 @dataclass(frozen=True)

@@ -1,7 +1,7 @@
-from abc import ABC
 from dataclasses import dataclass
 
 from .activation import Activation
+from .blackbox import BlackBox
 from .summary import Summary
 
 
@@ -12,7 +12,7 @@ class NeuralNetworkConfig(Summary):
     activations: list[Activation]
 
 
-class NeuralNetwork(ABC):
+class NeuralNetwork(BlackBox):
     def __init__(self, config: NeuralNetworkConfig, input_dim: int, output_dim: int):
         self.name: str = config.name
         self.nb_layers: int = len(config.activations)

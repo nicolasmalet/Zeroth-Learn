@@ -1,14 +1,15 @@
 from __future__ import annotations
 
 import itertools
-from pathlib import Path
 from dataclasses import dataclass, replace
-from typing import Union
+from pathlib import Path
+from typing import Any, cast
 
 import matplotlib.pyplot as plt
 import pandas as pd
+from matplotlib.figure import Figure
 
-from .abstract import Model, ModelConfig, DataCreator, Summary
+from .abstract import DataCreator, Model, ModelConfig, Summary
 from .data import Data
 from .plot_losses import plot_losses
 from .utils.dataclasses_utils import get_name, set_value_by_path
@@ -18,7 +19,7 @@ from .utils.dataclasses_utils import get_name, set_value_by_path
 class VariationConfig:
     name: str
     param: list[str]
-    values: Union[list, list[list]]
+    values: list[list[Any]]
 
 
 @dataclass(frozen=True)
@@ -54,11 +55,11 @@ class Experiment:
         self.models: list[Model] = generate_models(config.base_model, config.variations, self.data)
 
     def train_models(self, nb_print: int) -> None:
-        print(f"Training Models")
+        print("Training Models")
         for model in self.models:
             model.train(nb_print)
 
-    def plot_losses(self, title: str, plot_dimension: int, smooth_fraction: float = 0) -> plt.Figure:
+    def plot_losses(self, title: str, plot_dimension: int, smooth_fraction: float = 0) -> Figure:
         fig = plot_losses(title=title,
                           dimension=plot_dimension,
                           models=self.models,
@@ -69,7 +70,7 @@ class Experiment:
         return fig
 
     def test_models(self) -> None:
-        print(f"Testing Models")
+        print("Testing Models")
         for model in self.models:
             model.test()
 
@@ -88,7 +89,7 @@ class Experiment:
         df.to_csv(save_path)
 
     def save_weights(self, save_dir: Path) -> None:
-        for i, model in enumerate(self.models):
+        for model in self.models:
             save_path = save_dir / model.name
             model.save_weights(save_path)
 
@@ -97,7 +98,7 @@ class Experiment:
         config_path = save_dir / self.CONFIG_FILE
         self.config.save(config_path)
 
-        for i, model in enumerate(self.models):
+        for model in self.models:
             save_path = save_dir / model.name
             model.config.save(save_path)
 
@@ -109,13 +110,13 @@ def generate_models(base_model: ModelConfig, variations: list[VariationConfig], 
 
     for combination in itertools.product(*values_lists):
         id_ = {}
-        current_model = base_model
+        current_model: ModelConfig = base_model
 
-        for var_config, current_vals in zip(variations, combination):
+        for var_config, current_vals in zip(variations, combination, strict=True):
             id_[var_config.name] = get_name(current_vals[0])
 
-            for path, val in zip(var_config.param, current_vals):
-                current_model = set_value_by_path(current_model, path, val)
+            for path, val in zip(var_config.param, current_vals, strict=True):
+                current_model = cast(ModelConfig, set_value_by_path(current_model, path, val))
 
         current_model = replace(current_model, id=id_)
         models.append(current_model.instantiate(data))

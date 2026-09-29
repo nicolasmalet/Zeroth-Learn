@@ -1,8 +1,10 @@
-from .parameter_manager import ParameterManager
+from typing import Any
+
+from ...abstract import NeuralNetwork, NeuralNetworkConfig
+from ...types import Array
 from .. import GradientEstimator
 from ..zeroth_order_blackbox import ZerothOrderBlackBox
-from ...abstract import NeuralNetworkConfig, NeuralNetwork
-from ...types import Array
+from .parameter_manager import ParameterManager
 
 
 class ZerothOrderNeuralNetwork(NeuralNetwork, ZerothOrderBlackBox):
@@ -26,12 +28,12 @@ class ZerothOrderNeuralNetwork(NeuralNetwork, ZerothOrderBlackBox):
     def __call__(self, X: Array) -> Array:
         return self.forward(X)
 
-    def init_params(self, params: dict) -> None:
+    def init_params(self, params: dict[str, Any]) -> None:
         self.params.Ws = params["Ws"]
         self.params.Bs = params["Bs"]
         self.params.update_theta()
 
-    def get_params(self) -> dict:
+    def get_params(self) -> dict[str, Any]:
         return {"Ws": self.params.Ws, "Bs": self.params.Bs}
 
     def forward(self, X: Array) -> Array:

@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-from abc import abstractmethod, ABC
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
 import numpy as np
 
-from .gradient_estimators import GradientEstimator
-from .zeroth_order_blackbox import ZerothOrderBlackBox
 from ..abstract import Loss, Optimizer, Summary
 from ..types import Array
+from .gradient_estimators import GradientEstimator
+from .zeroth_order_blackbox import ZerothOrderBlackBox
 
 
 @dataclass(frozen=True)
@@ -40,7 +40,7 @@ class ZerothOrderAdamConfig(ZerothOrderSGDConfig):
 
 class ZerothOrderOptimizer(Optimizer):
     @abstractmethod
-    def do_descent(self, blackbox: ZerothOrderBlackBox, loss: Loss, X: Array, Y_true: Array) -> float:
+    def do_descent(self, neural_network: ZerothOrderBlackBox, loss: Loss, X: Array, Y_true: Array) -> float:
         ...
 
     @abstractmethod
@@ -64,7 +64,7 @@ class ZerothOrderSGD(ZerothOrderOptimizer):
         self.learning_rate: float = learning_rate
         self.gradient_estimator: GradientEstimator = gradient_estimator
 
-    def do_descent(self, blackbox: ZerothOrderBlackBox, loss: Loss, X: Array, Y_true: Array) -> float:
+    def do_descent(self, neural_network: ZerothOrderBlackBox, loss: Loss, X: Array, Y_true: Array) -> float:
         """Performs one optimization step using zeroth_order.
 
         1. Computes nominal prediction Y_pred.
@@ -76,8 +76,8 @@ class ZerothOrderSGD(ZerothOrderOptimizer):
             float: Average loss over the batch
         """
 
-        avg_loss, gradient = self.compute_gradient(blackbox, loss, X, Y_true)
-        self.update_params(blackbox, gradient)
+        avg_loss, gradient = self.compute_gradient(neural_network, loss, X, Y_true)
+        self.update_params(neural_network, gradient)
 
         return avg_loss
 

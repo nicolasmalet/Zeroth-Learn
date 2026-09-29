@@ -9,5 +9,5 @@ class Metric(ABC):
 
     @abstractmethod
     def __call__(self, Y_pred: Array, Y_true: Array) -> float:
-        """Applique la fonction d'activation (forward)."""
+        """Compute the metric from predictions and targets."""
         ...

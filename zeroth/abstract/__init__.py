@@ -4,7 +4,7 @@ from .data_creator import DataCreator
 from .loss import Loss
 from .metric import Metric
 from .model import Model, ModelConfig
-from .neural_network import NeuralNetworkConfig, NeuralNetwork
+from .neural_network import NeuralNetwork, NeuralNetworkConfig
 from .optimizer import Optimizer
 from .perturbation_matrix import PerturbationMatrix
 from .summary import Summary

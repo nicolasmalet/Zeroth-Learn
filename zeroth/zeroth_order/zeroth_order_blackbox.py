@@ -1,8 +1,8 @@
 from abc import abstractmethod
 
-from .gradient_estimators import GradientEstimator
 from ..abstract import BlackBox
 from ..types import Array
+from .gradient_estimators import GradientEstimator
 
 
 class ZerothOrderBlackBox(BlackBox):

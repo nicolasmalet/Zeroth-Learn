@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Any
 
 from ..types import Array
 
@@ -24,7 +25,7 @@ class BlackBox(ABC):
         ...
 
     @abstractmethod
-    def init_params(self, params: dict) -> None:
+    def init_params(self, params: dict[str, Any]) -> None:
         """Manually initializes the weights and biases of the network.
 
         Args:
@@ -33,7 +34,7 @@ class BlackBox(ABC):
         ...
 
     @abstractmethod
-    def get_params(self) -> dict:
+    def get_params(self) -> dict[str, Any]:
         """Retrieves the current parameters of the network.
 
         Returns:
